@@ -12,6 +12,7 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(epic_dungeon src/main.cpp)
+add_executable(epic_dungeon src/main.cpp src/Node.cpp src/Application.cpp)
+target_include_directories(epic_dungeon PUBLIC /include)
 target_compile_features(epic_dungeon PRIVATE cxx_std_17)
 target_link_libraries(epic_dungeon PRIVATE SFML::Graphics)
