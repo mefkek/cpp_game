@@ -1,4 +1,4 @@
-#include "../include/Application.hpp"
+#include "Nodes/Application.hpp"
 
 Application::Application()
 {

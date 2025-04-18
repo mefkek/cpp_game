@@ -1,5 +1,5 @@
 #pragma once
-#include "../include/Node.hpp"
+#include "Node.hpp"
 #include <SFML/Graphics.hpp>
 
 class Application
@@ -19,7 +19,7 @@ class Application
     Application();
     public:
     Application(const Application&) = delete;   //delete so it can't be copied
-    Application& operator==(const Application&) = delete;   //delete so it can't be claimed
+    Application& operator=(const Application&) = delete;   //delete so it can't be claimed
     static Application& instance();
     void run();
     void close();
