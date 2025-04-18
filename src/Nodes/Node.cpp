@@ -1,4 +1,4 @@
-#include "../include/Node.hpp"
+#include "Nodes/Node.hpp"
 #include <iostream>
 
 void Node::add_child(std::shared_ptr<Node> ch)
