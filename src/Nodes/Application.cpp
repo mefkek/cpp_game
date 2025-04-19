@@ -1,9 +1,24 @@
+#include <iostream>
 #include "Nodes/Application.hpp"
+#include "Nodes/RenderManager.hpp"
 
 Application::Application()
 {
-    window = sf::RenderWindow(sf::VideoMode({600u, 450u}), "CMake SFML Project");
+    window = sf::RenderWindow(sf::VideoMode({640 * 2, 360 * 2}), "CMake SFML Project");
     window.setFramerateLimit(144);
+
+    //for testing only
+    c_ptr = std::make_shared<sf::CircleShape>(75.f);
+    c_ptr->setFillColor(sf::Color::Green);
+    c_ptr->setOutlineThickness(-5);
+    c_ptr->setOutlineColor(sf::Color::Blue);
+    c_ptr->setOrigin({c_ptr->getRadius(), c_ptr->getRadius()});
+    c_ptr->setPosition({640/2.f, 360/2.f});
+    
+    //for testing only will be mvoed to a proper function later
+    mg.set_window(&window);
+    mg.add_layer("Test layer");
+    mg.add_drawable("Test layer", std::weak_ptr(c_ptr));
 }
 
 Application& Application::instance()
@@ -22,13 +37,16 @@ void Application::run()
          - update each tree node (bfs alghorithm)
          - draw and display
     */
+
+    //removed temporarly, will remove permanently after menagers are implemented
+    /*
     sf::CircleShape c(75);
     c.setFillColor(sf::Color::Green);
     c.setOutlineThickness(-5);
     c.setOutlineColor(sf::Color::Blue);
     c.setOrigin({75.f, 75.f});
     c.setPosition({600/2.f, 450/2.f});
-
+    */
     while (window.isOpen())
     {
         while (const std::optional event = window.pollEvent())
@@ -39,14 +57,14 @@ void Application::run()
             }
         }
 
-        window.clear();
-        window.draw(c);
-        window.display();
-    }
+        float delta = clock.restart().asSeconds();
+        if(root) root->update(delta);
     
-    //yeet above out later
-    float delta = clock.restart().asSeconds();
-    if(root) root->update(delta);
+        //testing enviroment below    
+        mg.update(delta);
+        //***********************************************
+
+    }
 }
 
 void Application::close()

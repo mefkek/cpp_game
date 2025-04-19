@@ -1,5 +1,6 @@
 #pragma once
 #include "Node.hpp"
+#include "RenderManager.hpp"    //tmp
 #include <SFML/Graphics.hpp>
 
 class Application
@@ -16,6 +17,8 @@ class Application
     sf::RenderWindow window;
     sf::Clock clock;
     std::shared_ptr<Node> root; //temporary
+    RenderManager mg; //tmp
+    std::shared_ptr<sf::CircleShape> c_ptr; //tmp
     Application();
     public:
     Application(const Application&) = delete;   //delete so it can't be copied

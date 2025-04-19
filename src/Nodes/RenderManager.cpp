@@ -33,6 +33,41 @@ class DuplicateRenderLayerException : public std::exception
 
 RenderLayer::RenderLayer(std::string name) : name(name) {};
 
+Render::Render(sf::RenderTexture n_tex)
+{
+    tex = std::make_unique<sf::RenderTexture>(std::move(n_tex));
+    sp = std::make_unique<sf::Sprite>(tex->getTexture());
+};
+
+void RenderManager::set_window(sf::RenderWindow* window)
+{
+    //set window, for scaling
+    this->window_ptr = window;
+}
+
+sf::Vector2u RenderManager::get_render_texture(std::string name)
+{
+    /*
+        For placing entities into their respective places
+    */
+    for(auto& [priority, layers_v] : layers)
+    {
+        auto it = std::find_if(layers_v.begin(), layers_v.end(),
+                        [&](const RenderLayer& a)
+                        {
+                            return a.name == name;
+                        }
+                    );
+        if(it != layers_v.end())
+        {
+            return renders[priority].tex->getSize();
+        }
+    }
+
+    std::cerr << "Layer with name: " << name << " has not been found.\n";
+    return {-1u, -1u};
+}
+
 void RenderManager::add_layer(std::string name, char priority, sf::Vector2u size)
 {
     //add layers at the correct priority, if layer with the same name exits then delete system32
@@ -53,7 +88,14 @@ void RenderManager::add_layer(std::string name, char priority, sf::Vector2u size
     layers[priority].emplace_back<RenderLayer>(name);
     if(!renders.count(priority))     //for map 0 or 1
     {
-        renders[priority] = sf::RenderTexture(size);  //640 x 360 by default
+        renders[priority] = Render(sf::RenderTexture(size));  //640 x 360 by default
+        sf::Vector2f scale(
+            {
+                window_ptr->getSize().x /static_cast<float>(renders[priority].tex->getTexture().getSize().x),
+                window_ptr->getSize().y / static_cast<float>(renders[priority].tex->getTexture().getSize().y)
+            });
+        renders[priority].sp->setScale(scale);
+        renders[priority].sp->setPosition({0.f, 0.f});
     }
 
     /*
@@ -145,12 +187,31 @@ void RenderManager::remove_layer(std::string name)
     std::cerr << "Layer with name: " << name << " has not been found\n";
 }
 
+void RenderManager::move_view(std::string layer_name, sf::Vector2f offset)
+{
+    for(auto& [priority, layers_v] : layers)
+    {
+        auto it = std::find_if(layers_v.begin(), layers_v.end(),
+                        [&](const RenderLayer& a)
+                        {
+                            return a.name == layer_name;
+                        }
+                    );
+        if(it != layers_v.end())
+        {
+            sf::View view = renders[priority].tex->getDefaultView();
+            view.move(offset);
+            renders[priority].tex->setView(view);
+        }
+    }
+}
+
 void RenderManager::update(float delta)
 {
     //remove nullptr and draw stuff to render textures
     for(auto& [priority, layers_v] : layers)
     {
-        renders[priority].clear();
+        renders[priority].tex->clear();
 
         for(auto& layer : layers_v)
         {
@@ -162,23 +223,21 @@ void RenderManager::update(float delta)
             {
                 if(auto p = dw_ptr.lock())
                 {
-                    renders[priority].draw(*p);
+                    renders[priority].tex->draw(*p);
                 }
             }
         }
+
+        renders[priority].tex->display();
     }
 
-    sf::RenderWindow& window = Application::instance().get_window();
+    window_ptr->clear();
 
-    window.clear();
-
-    for(auto& [priority, texture] : renders)
+    for(auto& [priority, render] : renders)
     {
-        //draw render textures into window
-        sf::Sprite render_sprite(texture.getTexture());
-        window.draw(render_sprite);
+        window_ptr->draw(*(render.sp));
     }
 
     //diplay
-    Application::instance().get_window().display();
+    window_ptr->display();
 }
