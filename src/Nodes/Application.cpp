@@ -54,3 +54,8 @@ void Application::close()
     //acts pretty much like a destructor, so any autosave on quit goes here
     window.close();
 }
+
+sf::RenderWindow& Application::get_window()
+{
+    return this->window;
+}

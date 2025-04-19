@@ -22,5 +22,6 @@ class Application
     Application& operator=(const Application&) = delete;   //delete so it can't be claimed
     static Application& instance();
     void run();
+    sf::RenderWindow& get_window();
     void close();
 };
