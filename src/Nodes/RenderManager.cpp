@@ -3,8 +3,21 @@
 #include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
 
+/*
+    NOTES:
+
+    Technically speaking layers should only be added either on
+    application startup, maybe on scene change, so maybe befriending
+    related construction should be included. For now its good.
+*/
+
 class DuplacateRenderLayerException : public std::exception
 {
+    /*
+        if (two layers with the same name) then
+            dont
+        endif
+    */
     private:
     std::string message = "Attempted to create a render layer with duplicate name: ";
     public:
@@ -22,6 +35,7 @@ RenderLayer::RenderLayer(std::string name) : name(name) {};
 
 void RenderManager::add_layer(std::string name, char priority)
 {
+    //add layers at the correct priority, if layer with the same name exits then delete system32
     for(auto& [priority, layers_v] : layers)
     {
         auto it = std::find_if(layers_v.begin(), layers_v.end(),
@@ -64,6 +78,7 @@ void RenderManager::remove_drawable(std::string layer, std::weak_ptr<sf::Drawabl
 {
     for(auto& [priority, layers_v] : layers)
     {
+        //find layer
         auto it = find_if(layers_v.begin(), layers_v.end(),
                             [&](const RenderLayer& a)
                             {
@@ -73,6 +88,7 @@ void RenderManager::remove_drawable(std::string layer, std::weak_ptr<sf::Drawabl
 
         if(it != layers_v.end())
         {
+            //find sf::Drawable, wont work for nullptr (as it should)
             auto dw_it = std::find_if(it->drawables.begin(), it->drawables.end(),
                                     [&](std::weak_ptr<sf::Drawable> other)
                                     {
@@ -88,6 +104,7 @@ void RenderManager::remove_drawable(std::string layer, std::weak_ptr<sf::Drawabl
             }
             
             std::cerr << "Drawable with address: " << dw.lock().get() << " has not been found\n";
+            //when nulltr prints "Drawable with address: 0x0 has not been found"
         }
     }
 
@@ -98,6 +115,7 @@ void RenderManager::remove_layer(std::string name)
 {
     for(auto& [priority, layers_v] : layers)
     {
+        //find layer with the same name
         auto it = std::find_if(layers_v.begin(), layers_v.end(),
                             [&](const RenderLayer& a)
                             {
@@ -117,8 +135,10 @@ void RenderManager::remove_layer(std::string name)
 
 void RenderManager::update(float delta)
 {
+    //clear window
     Application::instance().get_window().clear();
 
+    //remove nullptr and draw stuff
     for(auto& [priority, layers_v] : layers)
     {
         for(auto& layer : layers_v)
@@ -137,5 +157,6 @@ void RenderManager::update(float delta)
         }
     }
 
+    //diplay
     Application::instance().get_window().display();
 }

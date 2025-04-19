@@ -6,7 +6,7 @@
 
 struct RenderLayer
 {
-    std::string name;
+    std::string name;   //acts as unique identifier, throw exception when duplicate
     sf::RenderTexture texture;
     std::vector<std::weak_ptr<sf::Drawable>> drawables;
     RenderLayer(std::string name);
