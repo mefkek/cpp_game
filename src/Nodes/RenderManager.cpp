@@ -73,7 +73,13 @@ void RenderManager::remove_drawable(std::string layer, std::weak_ptr<sf::Drawabl
 
         if(it != layers_v.end())
         {
-            auto dw_it = std::find(it->drawables.begin(), it->drawables.end(), dw); //possible error no operator==
+            auto dw_it = std::find_if(it->drawables.begin(), it->drawables.end(),
+                                    [&](std::weak_ptr<sf::Drawable> other)
+                                    {
+                                        return !dw.expired() && !other.expired()
+                                                && dw.lock() == other.lock();
+                                    }
+                                );
             
             if(dw_it != it->drawables.end())
             {
