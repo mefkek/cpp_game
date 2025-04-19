@@ -11,7 +11,7 @@
     related construction should be included. For now its good.
 */
 
-class DuplacateRenderLayerException : public std::exception
+class DuplicateRenderLayerException : public std::exception
 {
     /*
         if (two layers with the same name) then
@@ -21,7 +21,7 @@ class DuplacateRenderLayerException : public std::exception
     private:
     std::string message = "Attempted to create a render layer with duplicate name: ";
     public:
-    DuplacateRenderLayerException(std::string name)
+    DuplicateRenderLayerException(const std::string& name)
     {
         message += name + ".\n";
     }
@@ -33,7 +33,7 @@ class DuplacateRenderLayerException : public std::exception
 
 RenderLayer::RenderLayer(std::string name) : name(name) {};
 
-void RenderManager::add_layer(std::string name, char priority)
+void RenderManager::add_layer(std::string name, char priority, sf::Vector2u size)
 {
     //add layers at the correct priority, if layer with the same name exits then delete system32
     for(auto& [priority, layers_v] : layers)
@@ -46,14 +46,22 @@ void RenderManager::add_layer(std::string name, char priority)
                     );
         if(it != layers_v.end())
         {
-            throw DuplacateRenderLayerException(name);
+            throw DuplicateRenderLayerException(name);
         }
     }
 
     layers[priority].emplace_back<RenderLayer>(name);
+    if(!renders.count(priority))     //for map 0 or 1
+    {
+        renders[priority] = sf::RenderTexture(size);  //640 x 360 by default
+    }
+
+    /*
+        If this turns out to be too slow a map or a vector with names could be added as a lookup
+    */
 }
 
-void RenderManager::add_drawable(std::string layer, std::weak_ptr<sf::Drawable> dw)
+void RenderManager::add_drawable(std::string layer, const std::weak_ptr<sf::Drawable>& dw)
 {
     for(auto& [priority, layers_v] : layers)
     {
@@ -74,7 +82,7 @@ void RenderManager::add_drawable(std::string layer, std::weak_ptr<sf::Drawable> 
     std::cerr << "Layer with the name: " << layer << " has not been found\n";
 }
 
-void RenderManager::remove_drawable(std::string layer, std::weak_ptr<sf::Drawable> dw)
+void RenderManager::remove_drawable(std::string layer, const std::weak_ptr<sf::Drawable>& dw)
 {
     for(auto& [priority, layers_v] : layers)
     {
@@ -126,21 +134,24 @@ void RenderManager::remove_layer(std::string name)
         if(it != layers_v.end())
         {
             layers_v.erase(it);
+            if(layers_v.empty())
+            {
+                renders.erase(priority);
+            }
             return;
         }
     }
     
-    std::cerr << "Layer with name" << name << " has not been found\n";
+    std::cerr << "Layer with name: " << name << " has not been found\n";
 }
 
 void RenderManager::update(float delta)
 {
-    //clear window
-    Application::instance().get_window().clear();
-
-    //remove nullptr and draw stuff
+    //remove nullptr and draw stuff to render textures
     for(auto& [priority, layers_v] : layers)
     {
+        renders[priority].clear();
+
         for(auto& layer : layers_v)
         {
             layer.drawables.erase(std::remove_if(layer.drawables.begin(), layer.drawables.end(),
@@ -151,10 +162,21 @@ void RenderManager::update(float delta)
             {
                 if(auto p = dw_ptr.lock())
                 {
-                    Application::instance().get_window().draw(*p);
+                    renders[priority].draw(*p);
                 }
             }
         }
+    }
+
+    sf::RenderWindow& window = Application::instance().get_window();
+
+    window.clear();
+
+    for(auto& [priority, texture] : renders)
+    {
+        //draw render textures into window
+        sf::Sprite render_sprite(texture.getTexture());
+        window.draw(render_sprite);
     }
 
     //diplay
