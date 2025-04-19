@@ -1,24 +1,49 @@
 #include <iostream>
 #include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
+#include "Nodes/FPSCounter.hpp"
+#include <vector>
 
 Application::Application()
 {
     window = sf::RenderWindow(sf::VideoMode({640 * 2, 360 * 2}), "CMake SFML Project");
-    window.setFramerateLimit(144);
+    window.setVerticalSyncEnabled(true);
 
+    unsigned int tmp_x = 640;
+    unsigned int tmp_y = 360;
+    /*
+        For future reference, making something like this below
+        is like opening tequila on sunday night
+    */
     //for testing only
-    c_ptr = std::make_shared<sf::CircleShape>(75.f);
+    c_ptr = std::make_shared<sf::CircleShape>(tmp_x / 5);
     c_ptr->setFillColor(sf::Color::Green);
-    c_ptr->setOutlineThickness(-5);
+    c_ptr->setOutlineThickness(tmp_x/5/15);
     c_ptr->setOutlineColor(sf::Color::Blue);
     c_ptr->setOrigin({c_ptr->getRadius(), c_ptr->getRadius()});
-    c_ptr->setPosition({640/2.f, 360/2.f});
+    c_ptr->setPosition({tmp_x / 2.f, tmp_y / 2.f});
+
+    root = std::make_shared<FPSCounter>();
+    std::weak_ptr<FPSCounter> fps = std::dynamic_pointer_cast<FPSCounter>(root);
+    fps.lock()->set_position({15, 15});
     
-    //for testing only will be mvoed to a proper function later
+    //for testing only, will be moved to a proper function later
+
+    /*
+    //addition test - passed
     mg.set_window(&window);
-    mg.add_layer("Test layer");
+    mg.add_layer("Test layer", 0, {tmp_x, tmp_y});
     mg.add_drawable("Test layer", std::weak_ptr(c_ptr));
+    mg.add_layer("UI", 4, {1920u, 1240u});  //rendered after
+    mg.add_drawable("UI", std::weak_ptr<sf::Text>(fps.lock()->text));
+    mg.move_view("UI", {1800, 500}); //viewport moves confirmed
+    */
+
+    //stess testing
+    mg.set_window(&window);
+    mg.add_layer("0", 0, {1920u, 1240u});
+    mg.add_layer("UI", 255, {1920u, 1240u});
+    mg.add_drawable("UI", std::weak_ptr<sf::Text>(fps.lock()->text));
 }
 
 Application& Application::instance()
@@ -29,6 +54,8 @@ Application& Application::instance()
 
 void Application::run()
 {
+    static std::vector<std::shared_ptr<sf::CircleShape>> circles;
+    circles.reserve(256 * 501);
     /*
         What should happen here:
          - no setting up anything, just the loop (leave setup in constructor)
@@ -51,9 +78,14 @@ void Application::run()
     {
         while (const std::optional event = window.pollEvent())
         {
-            if (event->is<sf::Event::Closed>())
+            if(event->is<sf::Event::Closed>())
             {
+                std::cerr << circles.size();
                 this->close();
+            }
+            else if(auto e = event->getIf<sf::Event::Resized>())
+            {
+                mg.rescale();
             }
         }
 
@@ -63,7 +95,15 @@ void Application::run()
         //testing enviroment below    
         mg.update(delta);
         //***********************************************
-
+        
+        for(int i = 0; i < 10; ++i)
+        {
+            std::shared_ptr<sf::CircleShape> c = std::make_shared<sf::CircleShape>(15.f);
+            c->setFillColor(sf::Color::Green);
+            c->setPosition({rand()%1920, rand()%1240});
+            circles.push_back(c);
+            mg.add_drawable("0", std::weak_ptr(c));
+        }
     }
 }
 

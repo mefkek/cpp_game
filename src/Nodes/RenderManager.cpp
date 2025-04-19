@@ -31,13 +31,12 @@ class DuplicateRenderLayerException : public std::exception
     }
 };
 
-RenderLayer::RenderLayer(std::string name) : name(name) {};
-
-Render::Render(sf::RenderTexture n_tex)
+RenderLayer::RenderLayer(std::string name, sf::Vector2u size)
 {
-    tex = std::make_unique<sf::RenderTexture>(std::move(n_tex));
-    sp = std::make_unique<sf::Sprite>(tex->getTexture());
-};
+    this->tex = std::make_unique<sf::RenderTexture>(size);
+    sp = std::make_unique<sf::Sprite>(this->tex->getTexture());
+    this->name = name;
+}
 
 void RenderManager::set_window(sf::RenderWindow* window)
 {
@@ -45,23 +44,17 @@ void RenderManager::set_window(sf::RenderWindow* window)
     this->window_ptr = window;
 }
 
-sf::Vector2u RenderManager::get_render_texture(std::string name)
+sf::Vector2u RenderManager::get_render_texture_size(std::string name)
 {
     /*
         For placing entities into their respective places
     */
-    for(auto& [priority, layers_v] : layers)
+    auto it = std::find_if(layers.begin(), layers.end(),
+                            [&](const std::pair<const unsigned char, RenderLayer>& other){return other.second.name == name;});
+
+    if(it != layers.end())
     {
-        auto it = std::find_if(layers_v.begin(), layers_v.end(),
-                        [&](const RenderLayer& a)
-                        {
-                            return a.name == name;
-                        }
-                    );
-        if(it != layers_v.end())
-        {
-            return renders[priority].tex->getSize();
-        }
+        return it->second.tex->getTexture().getSize();
     }
 
     std::cerr << "Layer with name: " << name << " has not been found.\n";
@@ -71,33 +64,27 @@ sf::Vector2u RenderManager::get_render_texture(std::string name)
 void RenderManager::add_layer(std::string name, char priority, sf::Vector2u size)
 {
     //add layers at the correct priority, if layer with the same name exits then delete system32
-    for(auto& [priority, layers_v] : layers)
+    if(!window_ptr)
     {
-        auto it = std::find_if(layers_v.begin(), layers_v.end(),
-                        [&](const RenderLayer& a)
-                        {
-                            return a.name == name;
-                        }
-                    );
-        if(it != layers_v.end())
+        throw "Render manger: no window given\n";
+    }
+
+    auto it = std::find_if(layers.begin(), layers.end(), [&](const std::pair<const unsigned char, RenderLayer>& other)
+                                                {return other.first == priority || other.second.name == name;}
+                );
+
+    if(it != layers.end())
+    {
+        throw DuplicateRenderLayerException(name);
+    }
+
+    layers[priority] = RenderLayer(name, size);
+    layers[priority].sp->setScale(
         {
-            throw DuplicateRenderLayerException(name);
+            window_ptr->getSize().x /static_cast<float>(layers[priority].tex->getTexture().getSize().x),
+            window_ptr->getSize().y / static_cast<float>(layers[priority].tex->getTexture().getSize().y)
         }
-    }
-
-    layers[priority].emplace_back<RenderLayer>(name);
-    if(!renders.count(priority))     //for map 0 or 1
-    {
-        renders[priority] = Render(sf::RenderTexture(size));  //640 x 360 by default
-        sf::Vector2f scale(
-            {
-                window_ptr->getSize().x /static_cast<float>(renders[priority].tex->getTexture().getSize().x),
-                window_ptr->getSize().y / static_cast<float>(renders[priority].tex->getTexture().getSize().y)
-            });
-        renders[priority].sp->setScale(scale);
-        renders[priority].sp->setPosition({0.f, 0.f});
-    }
-
+    );
     /*
         If this turns out to be too slow a map or a vector with names could be added as a lookup
     */
@@ -105,20 +92,13 @@ void RenderManager::add_layer(std::string name, char priority, sf::Vector2u size
 
 void RenderManager::add_drawable(std::string layer, const std::weak_ptr<sf::Drawable>& dw)
 {
-    for(auto& [priority, layers_v] : layers)
-    {
-        auto it = std::find_if(layers_v.begin(), layers_v.end(),
-                            [&](const RenderLayer& a)
-                            {
-                                return a.name == layer;
-                            }
-                        );
+    auto it = std::find_if(layers.begin(), layers.end(),
+                            [&](const std::pair<const unsigned char, RenderLayer>& other){return other.second.name == layer;});
 
-        if(it != layers_v.end())
-        {
-            it->drawables.push_back(dw);
-            return;
-        }
+    if(it != layers.end())
+    {
+        it->second.drawables.push_back(dw);
+        return;
     }
 
     std::cerr << "Layer with the name: " << layer << " has not been found\n";
@@ -126,36 +106,28 @@ void RenderManager::add_drawable(std::string layer, const std::weak_ptr<sf::Draw
 
 void RenderManager::remove_drawable(std::string layer, const std::weak_ptr<sf::Drawable>& dw)
 {
-    for(auto& [priority, layers_v] : layers)
-    {
-        //find layer
-        auto it = find_if(layers_v.begin(), layers_v.end(),
-                            [&](const RenderLayer& a)
-                            {
-                                return a.name == layer;
-                            }
-                        );
+    auto it = std::find_if(layers.begin(), layers.end(),
+                            [&](const std::pair<const unsigned char, RenderLayer>& other){return other.second.name == layer;});
 
-        if(it != layers_v.end())
-        {
-            //find sf::Drawable, wont work for nullptr (as it should)
-            auto dw_it = std::find_if(it->drawables.begin(), it->drawables.end(),
-                                    [&](std::weak_ptr<sf::Drawable> other)
+    if(it != layers.end())
+    {
+        //find sf::Drawable, wont work for nullptr (as it should)
+        auto dw_it = std::find_if(it->second.drawables.begin(), it->second.drawables.end(),
+                                [&](std::weak_ptr<sf::Drawable> other)
                                     {
                                         return !dw.expired() && !other.expired()
                                                 && dw.lock() == other.lock();
                                     }
                                 );
             
-            if(dw_it != it->drawables.end())
-            {
-                it->drawables.erase(dw_it);
-                return;
-            }
-            
-            std::cerr << "Drawable with address: " << dw.lock().get() << " has not been found\n";
-            //when nulltr prints "Drawable with address: 0x0 has not been found"
+        if(dw_it != it->second.drawables.end())
+        {
+            it->second.drawables.erase(dw_it);
+            return;
         }
+            
+        std::cerr << "Drawable with address: " << dw.lock().get() << " has not been found\n";
+        //when nulltr prints "Drawable with address: 0x0 has not been found"
     }
 
     std::cerr << "Layer with the name: " << layer << " has not been found\n";
@@ -163,81 +135,75 @@ void RenderManager::remove_drawable(std::string layer, const std::weak_ptr<sf::D
 
 void RenderManager::remove_layer(std::string name)
 {
-    for(auto& [priority, layers_v] : layers)
-    {
-        //find layer with the same name
-        auto it = std::find_if(layers_v.begin(), layers_v.end(),
-                            [&](const RenderLayer& a)
-                            {
-                                return a.name == name;
-                            }
-                        );
+    auto it = std::find_if(layers.begin(), layers.end(),
+                            [&](const std::pair<const unsigned char, RenderLayer>& other){return other.second.name == name;});
 
-        if(it != layers_v.end())
-        {
-            layers_v.erase(it);
-            if(layers_v.empty())
-            {
-                renders.erase(priority);
-            }
-            return;
-        }
+    if(it != layers.end())
+    {
+        layers.erase(it);
     }
     
     std::cerr << "Layer with name: " << name << " has not been found\n";
 }
 
-void RenderManager::move_view(std::string layer_name, sf::Vector2f offset)
+void RenderManager::move_view(std::string layer, sf::Vector2f offset)
 {
-    for(auto& [priority, layers_v] : layers)
+    auto it = std::find_if(layers.begin(), layers.end(),
+                            [&](const std::pair<const unsigned char, RenderLayer>& other){return other.second.name == layer;});
+
+    if(it != layers.end())
     {
-        auto it = std::find_if(layers_v.begin(), layers_v.end(),
-                        [&](const RenderLayer& a)
-                        {
-                            return a.name == layer_name;
-                        }
-                    );
-        if(it != layers_v.end())
-        {
-            sf::View view = renders[priority].tex->getDefaultView();
-            view.move(offset);
-            renders[priority].tex->setView(view);
-        }
+        sf::View view = it->second.tex->getDefaultView();
+        view.move(-offset);     //flipped for intuitive usage
+        it->second.tex->setView(view);
+    }
+}
+
+void RenderManager::rescale()
+{
+    if(!window_ptr)
+    {
+        throw "Render manger: no window given\n";
+    }
+
+    for(auto& [priority, layer] : layers)
+    {
+        layer.sp->setScale(
+            {
+                window_ptr->getSize().x /
+                static_cast<float>(layer.tex->getTexture().getSize().x),
+                window_ptr->getSize().y /
+                static_cast<float>(layer.tex->getTexture().getSize().y)
+            }
+        );
     }
 }
 
 void RenderManager::update(float delta)
 {
+    window_ptr->clear();
+
     //remove nullptr and draw stuff to render textures
-    for(auto& [priority, layers_v] : layers)
+    for(auto& [priority, layer] : layers)
     {
-        renders[priority].tex->clear();
+        layer.tex->clear(sf::Color::Transparent);
 
-        for(auto& layer : layers_v)
+        layer.drawables.erase(std::remove_if(layer.drawables.begin(), layer.drawables.end(),
+                                    [](std::weak_ptr<sf::Drawable>& a) {return a.expired();}),
+                                layer.drawables.end());
+            
+        for(auto& dw_ptr : layer.drawables)
         {
-            layer.drawables.erase(std::remove_if(layer.drawables.begin(), layer.drawables.end(),
-                                        [](std::weak_ptr<sf::Drawable>& a) {return a.expired();}),
-                                  layer.drawables.end());
-
-            for(auto& dw_ptr : layer.drawables)
+            if(auto p = dw_ptr.lock())
             {
-                if(auto p = dw_ptr.lock())
-                {
-                    renders[priority].tex->draw(*p);
-                }
+                layer.tex->draw(*p);
             }
         }
 
-        renders[priority].tex->display();
+        layer.tex->display();
+
+        window_ptr->draw(*(layer.sp));
     }
 
-    window_ptr->clear();
-
-    for(auto& [priority, render] : renders)
-    {
-        window_ptr->draw(*(render.sp));
-    }
-
-    //diplay
     window_ptr->display();
 }
