@@ -31,7 +31,19 @@ class DuplicateRenderLayerException : public std::exception
     }
 };
 
-RenderLayer::RenderLayer(std::string name, sf::Vector2u size)
+class NoWindowGivenException: public std::exception
+{
+    /*
+        for when there is no window given
+    */
+    public:
+    const char* what() const noexcept override
+    {
+        return "Render manger: no window given.\n";
+    }
+};
+
+RenderLayer::RenderLayer(const std::string& name, sf::Vector2u size)
 {
     this->tex = std::make_unique<sf::RenderTexture>(size);
     sp = std::make_unique<sf::Sprite>(this->tex->getTexture());
@@ -44,7 +56,7 @@ void RenderManager::set_window(sf::RenderWindow* window)
     this->window_ptr = window;
 }
 
-sf::Vector2u RenderManager::get_render_texture_size(std::string name)
+sf::Vector2u RenderManager::get_render_texture_size(const std::string& name)
 {
     /*
         For placing entities into their respective places
@@ -61,12 +73,12 @@ sf::Vector2u RenderManager::get_render_texture_size(std::string name)
     return {-1u, -1u};
 }
 
-void RenderManager::add_layer(std::string name, char priority, sf::Vector2u size)
+void RenderManager::add_layer(const std::string& name, char priority, sf::Vector2u size)
 {
     //add layers at the correct priority, if layer with the same name exits then delete system32
     if(!window_ptr)
     {
-        throw "Render manger: no window given\n";
+        throw NoWindowGivenException();
     }
 
     auto it = std::find_if(layers.begin(), layers.end(), [&](const std::pair<const unsigned char, RenderLayer>& other)
@@ -75,7 +87,8 @@ void RenderManager::add_layer(std::string name, char priority, sf::Vector2u size
 
     if(it != layers.end())
     {
-        throw DuplicateRenderLayerException(name);
+        throw DuplicateRenderLayerException(name); 
+        //this could be an cerr message, but for safety reson it throw an exception
     }
 
     layers[priority] = RenderLayer(name, size);
@@ -90,10 +103,13 @@ void RenderManager::add_layer(std::string name, char priority, sf::Vector2u size
     */
 }
 
-void RenderManager::add_drawable(std::string layer, const std::weak_ptr<sf::Drawable>& dw)
+void RenderManager::add_drawable(const std::string& layer, const std::weak_ptr<sf::Drawable>& dw)
 {
     auto it = std::find_if(layers.begin(), layers.end(),
-                            [&](const std::pair<const unsigned char, RenderLayer>& other){return other.second.name == layer;});
+                           [&](const std::pair<const unsigned char, RenderLayer>& other)
+                           {
+                                return other.second.name == layer;
+                           });
 
     if(it != layers.end())
     {
@@ -104,10 +120,13 @@ void RenderManager::add_drawable(std::string layer, const std::weak_ptr<sf::Draw
     std::cerr << "Layer with the name: " << layer << " has not been found\n";
 }
 
-void RenderManager::remove_drawable(std::string layer, const std::weak_ptr<sf::Drawable>& dw)
+void RenderManager::remove_drawable(const std::string& layer, const std::weak_ptr<sf::Drawable>& dw)
 {
     auto it = std::find_if(layers.begin(), layers.end(),
-                            [&](const std::pair<const unsigned char, RenderLayer>& other){return other.second.name == layer;});
+                           [&](const std::pair<const unsigned char, RenderLayer>& other)
+                           {
+                                return other.second.name == layer;
+                           });
 
     if(it != layers.end())
     {
@@ -133,23 +152,30 @@ void RenderManager::remove_drawable(std::string layer, const std::weak_ptr<sf::D
     std::cerr << "Layer with the name: " << layer << " has not been found\n";
 }
 
-void RenderManager::remove_layer(std::string name)
+void RenderManager::remove_layer(const std::string& name)
 {
     auto it = std::find_if(layers.begin(), layers.end(),
-                            [&](const std::pair<const unsigned char, RenderLayer>& other){return other.second.name == name;});
+                           [&](const std::pair<const unsigned char, RenderLayer>& other)
+                           {
+                                return other.second.name == name;
+                           });
 
     if(it != layers.end())
     {
         layers.erase(it);
+        return;
     }
     
     std::cerr << "Layer with name: " << name << " has not been found\n";
 }
 
-void RenderManager::move_view(std::string layer, sf::Vector2f offset)
+void RenderManager::move_view(const std::string& layer, sf::Vector2f offset)
 {
     auto it = std::find_if(layers.begin(), layers.end(),
-                            [&](const std::pair<const unsigned char, RenderLayer>& other){return other.second.name == layer;});
+                           [&](const std::pair<const unsigned char, RenderLayer>& other)
+                           {
+                                return other.second.name == layer;
+                           });
 
     if(it != layers.end())
     {
@@ -163,7 +189,7 @@ void RenderManager::rescale()
 {
     if(!window_ptr)
     {
-        throw "Render manger: no window given\n";
+        throw NoWindowGivenException();
     }
 
     for(auto& [priority, layer] : layers)

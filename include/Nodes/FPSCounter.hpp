@@ -8,7 +8,7 @@ class FPSCounter : public Node
     private:
     sf::Font font;
     public:
-    std::shared_ptr<sf::Text> text; //testing only
+    std::shared_ptr<sf::Text> text; //testing only, add get/set functions after menagers are set up
     FPSCounter();
     void set_position(sf::Vector2f pos);
     void update(float delta) override;
