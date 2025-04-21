@@ -1,6 +1,7 @@
 #pragma once
 #include "Utility/Exceptions.hpp"
 #include "Utility/Various.hpp"
+#include "EventsManager.hpp"    //tmp
 #include "Nodes.hpp"
 #include <SFML/Graphics.hpp>
 #include <typeindex>
@@ -24,7 +25,7 @@ class Application
     std::shared_ptr<Node> root; //temporary (?)
     std::map<std::type_index, std::shared_ptr<Node>> managers;
     static std::mutex application_mutex;
-
+    
     Application();
 
     public:

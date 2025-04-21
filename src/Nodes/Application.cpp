@@ -21,11 +21,15 @@ Application::Application()
     fps.lock()->set_position({15, 15});
 
     register_manager<RenderManager>();
+    register_manager<EventManager>();
 
     get_manager<RenderManager>()->set_window(&window);
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
     get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps.lock()->text));
+
+    get_manager<EventManager>()->register_sfml_event<sf::Event::Closed>([&](const sf::Event::Closed& e) {close();}, std::weak_ptr(root));
+    get_manager<EventManager>()->register_sfml_event<sf::Event::Resized>([&](const sf::Event::Resized& e) {mg.rescale();}, std::weak_ptr(root));
     //********************************************/
 }
 
@@ -55,21 +59,10 @@ void Application::run()
 
     while (window.isOpen())
     {
-        while (const std::optional event = window.pollEvent())
-        {
-            if(event->is<sf::Event::Closed>())
-            {
-                this->close();
-            }
-            else if(auto e = event->getIf<sf::Event::Resized>())
-            {
-                get_manager<RenderManager>()->rescale();   //for proper rendering
-            }
-        }
-
         float delta = clock.restart().asSeconds();
         std::stack<StackElement> s;   //pointer : visited pair
 
+        get_manager<EventManager>()->update();
         //managers should be update in the node that added them
 
         /*
