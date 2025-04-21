@@ -1,6 +1,7 @@
 #include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
 #include "Nodes/FPSCounter.hpp"
+#include "Nodes/EventsManager.hpp"
 #include <stack>
 
 std::mutex Application::application_mutex;

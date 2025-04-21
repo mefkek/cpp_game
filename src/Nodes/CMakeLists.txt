@@ -3,6 +3,7 @@ set(SOURCES
     Application.cpp
     RenderManager.cpp
     FPSCounter.cpp
+    EventsManager.cpp
 )
 
 add_library(Nodes ${SOURCES})
