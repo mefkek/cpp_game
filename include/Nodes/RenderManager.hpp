@@ -10,11 +10,10 @@ struct RenderLayer
         Class for staring information related to one layer
         Should maybe be moved into separate file
     */
-    std::string name;   //acts as unique identifier, throw exception when duplicate
     std::unique_ptr<sf::Sprite> sp;
     std::unique_ptr<sf::RenderTexture> tex;
     std::vector<std::weak_ptr<sf::Drawable>> drawables;
-    RenderLayer(const std::string& name, sf::Vector2u size);
+    RenderLayer(sf::Vector2u size);
     RenderLayer() = default;
 };
 
@@ -22,6 +21,7 @@ class RenderManager : public Node
 {
     private:
     std::map<unsigned char, RenderLayer> layers;
+    std::map<std::string, unsigned char> string_ref;
     //Pointer for resizing, as resizing could happen in Application constructor and couse bugs
     sf::RenderWindow* window_ptr;
 
