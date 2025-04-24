@@ -7,17 +7,16 @@ Application::Application()
     window = sf::RenderWindow(sf::VideoMode({640 * 2, 360 * 2}), "CMake SFML Project");
     window.setVerticalSyncEnabled(true);
 
-    unsigned int tmp_x = 640;
-    unsigned int tmp_y = 360;
-
     //This block can stay for now, but this should be handled properly later on (program argumetns -d maybe?)
     root = std::make_shared<FPSCounter>();
     std::weak_ptr<FPSCounter> fps = std::dynamic_pointer_cast<FPSCounter>(root);
     fps.lock()->set_position({15, 15});
 
-    mg.set_window(&window);
-    mg.add_layer("UI", 255, {1920u, 1240u});
-    mg.add_drawable("UI", std::weak_ptr<sf::Text>(fps.lock()->text));
+    register_manager<RenderManager>();
+
+    get_manager<RenderManager>()->set_window(&window);
+    get_manager<RenderManager>()->add_layer("UI", 255, {1920u, 1240u});
+    get_manager<RenderManager>()->add_drawable("UI", std::weak_ptr<sf::Text>(fps.lock()->text));
     //********************************************/
 }
 
@@ -47,7 +46,7 @@ void Application::run()
             }
             else if(auto e = event->getIf<sf::Event::Resized>())
             {
-                mg.rescale();   //for proper rendering
+                get_manager<RenderManager>()->rescale();   //for proper rendering
             }
         }
 
@@ -55,7 +54,7 @@ void Application::run()
         if(root) root->update(delta);
     
         //this should be the first element added to the queue in bfs 
-        mg.update(delta);   //handle rendering
+        get_manager<RenderManager>()->update(delta);   //handle rendering
         //***********************************************
     }
 }
