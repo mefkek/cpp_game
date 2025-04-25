@@ -2,8 +2,24 @@
 #include "Node.hpp"
 #include "RenderManager.hpp"    //tmp
 #include <SFML/Graphics.hpp>
+#include <iostream>
 #include <typeindex>
 #include <map>
+
+class ManagerNotFoundException : public std::exception
+{
+    private:
+    std::string msg;
+    public:
+    ManagerNotFoundException(std::string type_name)
+    {
+        msg = "Manager of type: " + type_name +  " haven't been found.\n";
+    }
+    const char* what() const noexcept override
+    {
+        return msg.c_str();
+    }
+};
 
 class Application
 {
@@ -43,6 +59,7 @@ class Application
             return std::dynamic_pointer_cast<T>(managers[std::type_index(typeid(T))]);
         }
 
+        throw ManagerNotFoundException(std::type_index(typeid(T)).name());
         return nullptr;
     }
     void close();

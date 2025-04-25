@@ -25,8 +25,18 @@ void FPSCounter::set_position(sf::Vector2f pos)
 
 void FPSCounter::update(float delta)
 {
-    float fps = 1 / delta;
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(0) << fps;
-    text->setString(ss.str());
+    time_passed += delta;
+    frames++;
+
+    int updates_per_second = 5;
+    if(time_passed >= (1.f/updates_per_second))
+    {
+        //update counter 5 times per second
+        float fps = frames / time_passed;
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(0) << fps;
+        text->setString(ss.str());
+        time_passed = 0;
+        frames = 0;
+    }
 }
