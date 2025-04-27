@@ -34,7 +34,6 @@ class Application
     sf::RenderWindow window;
     sf::Clock clock;
     std::shared_ptr<Node> root; //temporary
-    std::shared_ptr<sf::CircleShape> c_ptr; //tmp
     std::map<std::type_index, std::shared_ptr<Node>> managers;
 
     Application();
