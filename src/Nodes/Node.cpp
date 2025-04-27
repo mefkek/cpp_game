@@ -14,6 +14,12 @@ void Node::remove_child(std::shared_ptr<Node> ch)
 
 void Node::kill()
 {
+    /*
+        node removes itslef from parents children vector, wont work if
+        orphaned (if nodes are orphaned then its bad, but shared_ptr
+        should help with that) or its a root node (which is good)
+    */
+
     if(auto p = this->parent.lock())
     {
         std::vector<std::shared_ptr<Node>>& p_children = p->get_children();

@@ -3,39 +3,6 @@
 #include "Nodes/FPSCounter.hpp"
 #include <stack>
 
-sf::Vector2f pos = {0.f , 0.f};
-class TestNode : public Node
-{
-    private:
-    std::shared_ptr<sf::CircleShape> c;
-    float timeout = 5.f;
-    int time_steps = 4.5f;
-    
-    public:
-    TestNode()
-    {
-        c = std::make_shared<sf::CircleShape>(25.f);
-        c->setPosition(pos);
-        Application::instance().get_manager<RenderManager>()->add_drawable("UI", c);
-        pos += {25.f, 25.f};
-    };
-
-    void update(float delta) override
-    {
-        timeout -= delta;
-        if(timeout <= 0.f)
-        {
-            kill();  
-        }
-        else if(timeout <= time_steps)
-        {
-            this->add_child<TestNode>();
-            time_steps -= 0.5f;
-        }
-    }
-};
-
-
 Application::Application()
 {
     /*
@@ -44,7 +11,8 @@ Application::Application()
     window = sf::RenderWindow(sf::VideoMode({640 * 2, 360 * 2}), "CMake SFML Project");
     window.setVerticalSyncEnabled(true);
 
-    //This block can stay for now, but this should be handled properly later on (program argumetns -d maybe?)
+    //This block can stay for now, but this should be handled properly later on
+    //(program argumetns -d as an separete debug node maybe?)
     root = std::make_shared<FPSCounter>();
     std::weak_ptr<FPSCounter> fps = std::dynamic_pointer_cast<FPSCounter>(root);
     fps.lock()->set_position({15, 15});
@@ -79,7 +47,7 @@ void Application::run()
          - update each tree node (bfs alghorithm)
          - draw and display
     */
-    root->add_child<TestNode>();
+
     while (window.isOpen())
     {
         while (const std::optional event = window.pollEvent())
@@ -96,37 +64,42 @@ void Application::run()
 
         float delta = clock.restart().asSeconds();
         std::stack<StackElement> s;   //pointer : visited pair
-        int child_count = 0;
 
-        if(root)
+        /*
+            DFS for three travelsal, updates children first, then the parent
+        */
+
+        //managers are updated separatly
+        for(auto& [type_id, manager] : managers)
         {
-            s.push({root, false});
-            
-            while(!s.empty())
+            if(type_id != std::type_index(typeid(RenderManager)))
             {
-                StackElement& top = s.top();
-
-                if(!top.visited)
-                {
-                    top.visited = true;
-                    for(auto it = top.ptr->get_children().rbegin(); it != top.ptr->get_children().rend(); ++it)
-                    {
-                        s.push({*it, false});
-                    }
-                }
-                else
-                {
-                    top.ptr->update(delta);
-                    child_count++;
-                    s.pop();
-                }
+                manager->update(delta);
             }
         }
-        
-        std::cerr << child_count << '\n';
-        //this should be the first element added to the queue in bfs 
-        get_manager<RenderManager>()->update(delta);   //handle rendering
-        //***********************************************
+
+        s.push({root, false});
+            
+        while(!s.empty())
+        {
+            StackElement& top = s.top();
+
+            if(!top.visited)
+            {
+                top.visited = true;
+                for(auto it = top.ptr->get_children().rbegin(); it != top.ptr->get_children().rend(); ++it)
+                {
+                    s.push({*it, false});
+                }
+            }
+            else
+            {
+                top.ptr->update(delta);
+                s.pop();
+            }
+        }
+
+        get_manager<RenderManager>()->update(delta);
     }
 }
 

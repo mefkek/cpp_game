@@ -1,9 +1,8 @@
 #pragma once
-#include "Node.hpp"
-#include "RenderManager.hpp"    //tmp
+#include "Nodes.hpp"
 #include <SFML/Graphics.hpp>
-#include <iostream>
 #include <typeindex>
+#include <iostream>
 #include <map>
 
 class ManagerNotFoundException : public std::exception
@@ -56,7 +55,7 @@ class Application
     void run();
 
     sf::RenderWindow& get_window();
-
+    
     template <typename T>
     std::shared_ptr<T> get_manager()
     {
@@ -68,6 +67,6 @@ class Application
         throw ManagerNotFoundException(std::type_index(typeid(T)).name());
         return nullptr;
     }
-    
+
     void close();
 };

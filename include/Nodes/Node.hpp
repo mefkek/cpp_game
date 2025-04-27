@@ -14,7 +14,7 @@ class Node : public std::enable_shared_from_this<Node>
     std::weak_ptr<Node> parent;
 
     public:
-    Node() = default;
+    Node() = default;   //should only be used when adding root (friend Application?)
 
     virtual void update(float) = 0;
 
@@ -24,7 +24,7 @@ class Node : public std::enable_shared_from_this<Node>
     void add_child(Args&&... args)
     {
         std::shared_ptr<T> new_child = std::make_shared<T>(std::forward<Args>(args)...);
-        if(auto p = std::dynamic_pointer_cast<Node>(new_child))
+        if(auto p = std::dynamic_pointer_cast<Node>(new_child))     //if child is not a node, ignore
         {
             p->parent = shared_from_this();
             children.push_back(new_child);

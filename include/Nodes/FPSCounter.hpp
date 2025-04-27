@@ -1,7 +1,8 @@
 #pragma once
+
+#include "Node.hpp"
 #include <SFML/Graphics.hpp>
 #include <memory>
-#include "Node.hpp"
 
 class FPSCounter : public Node
 {
