@@ -9,9 +9,13 @@ class FPSCounter : public Node
     sf::Font font;
     float time_passed;
     unsigned int frames;
+
     public:
     std::shared_ptr<sf::Text> text; //testing only, add get/set functions after menagers are set up
+
     FPSCounter();
+
     void set_position(sf::Vector2f pos);
+    
     void update(float delta) override;
 };

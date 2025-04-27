@@ -29,7 +29,7 @@ class Application
 
         Not multithread proof
 
-        Could add as tree root
+        Could act as tree root
     */
     private:
     sf::RenderWindow window;
@@ -37,6 +37,7 @@ class Application
     std::shared_ptr<Node> root; //temporary
     std::shared_ptr<sf::CircleShape> c_ptr; //tmp
     std::map<std::type_index, std::shared_ptr<Node>> managers;
+
     Application();
 
     template <typename T, typename ... Args>
@@ -44,11 +45,16 @@ class Application
     {
         managers[std::type_index(typeid(T))] = std::make_shared<T>(std::forward<Args>(args)...);
     }
+
     public:
     Application(const Application&) = delete;   //delete so it can't be copied
+
     Application& operator=(const Application&) = delete;   //delete so it can't be claimed
+
     static Application& instance();
+
     void run();
+
     sf::RenderWindow& get_window();
 
     template <typename T>
@@ -62,5 +68,6 @@ class Application
         throw ManagerNotFoundException(std::type_index(typeid(T)).name());
         return nullptr;
     }
+    
     void close();
 };
