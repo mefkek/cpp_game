@@ -20,8 +20,9 @@ Application::Application()
     register_manager<RenderManager>();
 
     get_manager<RenderManager>()->set_window(&window);
-    get_manager<RenderManager>()->add_layer("UI", 255, {1920u, 1240u});
-    get_manager<RenderManager>()->add_drawable("UI", std::weak_ptr<sf::Text>(fps.lock()->text));
+    get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
+    //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
+    get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps.lock()->text));
     //********************************************/
 }
 
@@ -65,18 +66,12 @@ void Application::run()
         float delta = clock.restart().asSeconds();
         std::stack<StackElement> s;   //pointer : visited pair
 
+        //managers should be update in the node that added them
+
         /*
             DFS for three travelsal, updates children first, then the parent
+            Depending on SceneManager implementation that may be moved there
         */
-
-        //managers are updated separatly
-        for(auto& [type_id, manager] : managers)
-        {
-            if(type_id != std::type_index(typeid(RenderManager)))
-            {
-                manager->update(delta);
-            }
-        }
 
         s.push({root, false});
             

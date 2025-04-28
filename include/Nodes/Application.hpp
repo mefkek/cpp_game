@@ -33,16 +33,10 @@ class Application
     private:
     sf::RenderWindow window;
     sf::Clock clock;
-    std::shared_ptr<Node> root; //temporary
+    std::shared_ptr<Node> root; //temporary (?)
     std::map<std::type_index, std::shared_ptr<Node>> managers;
 
     Application();
-
-    template <typename T, typename ... Args>
-    void register_manager(Args&&... args)
-    {
-        managers[std::type_index(typeid(T))] = std::make_shared<T>(std::forward<Args>(args)...);
-    }
 
     public:
     Application(const Application&) = delete;   //delete so it can't be copied
@@ -55,6 +49,12 @@ class Application
 
     sf::RenderWindow& get_window();
     
+    template <typename T, typename ... Args>
+    void register_manager(Args&&... args)
+    {
+        managers[std::type_index(typeid(T))] = std::make_shared<T>(std::forward<Args>(args)...);
+    }
+
     template <typename T>
     std::shared_ptr<T> get_manager()
     {

@@ -31,7 +31,6 @@ void FPSCounter::update(float delta)
     int updates_per_second = 5;
     if(time_passed >= (1.f/updates_per_second))
     {
-        //update counter 5 times per second
         float fps = frames / time_passed;
         std::stringstream ss;
         ss << std::fixed << std::setprecision(0) << fps;
