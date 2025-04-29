@@ -63,7 +63,12 @@ class Application
             return std::dynamic_pointer_cast<T>(managers[std::type_index(typeid(T))]);
         }
 
+        #ifdef __GNUG__ //reference Node.cpp for reference
+        throw ManagerNotFoundException(demangle(std::type_index(typeid(T)).name()));
+        #else
         throw ManagerNotFoundException(std::type_index(typeid(T)).name());
+        #endif
+
         return nullptr;
     }
 

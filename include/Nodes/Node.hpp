@@ -3,6 +3,15 @@
 #include <vector>
 #include <memory>
 
+#ifdef __GNUG__
+/*
+    When we will be doing some sort of a logger
+    class this should be moved into some sort of a
+    utility header alonside the exceptions
+*/
+std::string demangle(const char* name);
+#endif
+
 class Node : public std::enable_shared_from_this<Node>
 {
     /*
@@ -40,3 +49,5 @@ class Node : public std::enable_shared_from_this<Node>
 
     virtual ~Node() = default;
 };
+
+std::ostream& operator<<(std::ostream& os, std::shared_ptr<Node>& n);
