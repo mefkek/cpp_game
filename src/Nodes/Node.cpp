@@ -1,3 +1,4 @@
+#include "Utility/Various.hpp"
 #include "Nodes/Node.hpp"
 #include <iostream>
 #include <typeindex>
@@ -7,18 +8,6 @@
     For Node name demangling on GCC/Clang, MSVC should have it human readable
     Source: https://stackoverflow.com/questions/281818/unmangling-the-result-of-stdtype-infoname
 */
-#ifdef __GNUG__
-#include <cxxabi.h>
-
-std::string demangle(const char* name) {
-    int status = -1;
-    std::unique_ptr<char[], void(*)(void*)> result(
-        abi::__cxa_demangle(name, nullptr, nullptr, &status),
-        std::free
-    );
-    return (status == 0) ? result.get() : name;
-}
-#endif
 
 std::vector<std::shared_ptr<Node>>& Node::get_children()
 {
@@ -54,11 +43,7 @@ std::ostream& operator<<(std::ostream& os, std::shared_ptr<Node>& n)
 
     // prints something like FPSCounter0x9309e50
     // 0x9... is a memory address that doubles as node id in that case
-    #ifdef __GNUG__
     os << demangle(std::type_index(typeid(*n)).name()) << n.get();
-    #else
-    os << std::type_index(typeid(*n)).name() << n.get();
-    #endif
 
     return os;
 }

@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
+#include "Utility/Exceptions.hpp"
 
 /*
     NOTES:
@@ -11,38 +12,6 @@
     related construction should be included. For now its good.
 */
 
-class DuplicateRenderLayerException : public std::exception
-{
-    /*
-        if (two layers with the same name) then
-            dont
-        endif
-    */
-    private:
-    std::string message;
-    public:
-    DuplicateRenderLayerException(const std::string& name)
-    {
-        message = Logger::format(Logger::MessageType::Error,
-                  "Attempted to create a render layer with duplicate name: ", name , ".");
-    }
-    const char* what() const noexcept override
-    {
-        return message.c_str();
-    }
-};
-
-class NoWindowGivenException: public std::exception
-{
-    /*
-        for when there is no window given
-    */
-    public:
-    const char* what() const noexcept override
-    {
-        return Logger::format(Logger::MessageType::Error, "Render manger: no window given.").c_str();
-    }
-};
 
 RenderLayer::RenderLayer(sf::Vector2u size)
 {

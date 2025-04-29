@@ -1,5 +1,6 @@
 #include "Nodes/FPSCounter.hpp"
 #include "Nodes/RenderManager.hpp"
+#include "Utility/Exceptions.hpp"
 #include <iomanip>
 #include <sstream>
 
@@ -7,7 +8,7 @@ FPSCounter::FPSCounter()
 {
     if(!font.openFromFile("Fonts/ARIAL.TTF"))
     {
-        throw Logger::format(Logger::MessageType::Error, "Font at path \"Fonts/ARIAL.TTF\" not found.");
+        throw FileNotFoundException("Fonts/ARIAL.TTF");
     }
 
     text = std::make_unique<sf::Text>(font);

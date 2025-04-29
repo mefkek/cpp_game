@@ -3,11 +3,8 @@
 #include <fstream>
 #include <sstream>
 #include <chrono>
+#include <mutex>
 #include <ctime>
-
-#ifdef WIN32
-#include <windows.h>
-#endif
 
 #ifdef DEBUG
 #include <filesystem>
@@ -16,36 +13,18 @@
 class Logger
 {
     private:
-        enum ConsoleColor
+
+    static bool can_open;
+    static std::mutex log_mutex;
+
+    enum ConsoleColor
     {
         white = 0xF,
         yellow = 0xE,
         red = 0x4
     };
 
-    static void set_console_output_color(ConsoleColor color)
-    {
-        #if defined(_WIN32)
-
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
-
-        #elif defined(__linux__) || defined(__APPLE__)
-
-        if(color == ConsoleColor::white)
-        {
-            std::cout << "\033[0m";     //technically default, not necessarily white
-        }
-        else if(color == ConsoleColor::yellow)
-        {
-            std::cout << "\033[33m";
-        }
-        else if(color == ConsoleColor::red)
-        {
-            std::cout << "\033[31m";
-        }
-
-        #endif
-    }
+    static void set_console_output_color(ConsoleColor color);
     
     public:
     enum MessageType : unsigned char
@@ -60,41 +39,34 @@ class Logger
     {
         try
         {
-            std::stringstream log_ss;
+            std::stringstream log_ss(Logger::format(type, std::forward<Args>(args)...));
+            std::lock_guard<std::mutex> lock(log_mutex);
+            std::string dump, time_str;;
 
-            std::time_t current_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-            std::string time_str = std::ctime(&current_time);
-            if (!time_str.empty() && time_str.back() == '\n')
-            {
-                time_str.pop_back();    //by default string end with '\n' which I am removing here
-            }
-
-            std::cout << time_str << ' ';
-            log_ss << time_str << ' ';
+            std::getline(log_ss, dump, '[');
+            time_str = dump;
+            std::cout << dump;
+            std::getline(log_ss, dump, ']');
 
             switch (type)
             {
                 case MessageType::Info:
                     set_console_output_color(ConsoleColor::white);
-                    log_ss << "[INFO] ";
-                    std::cout << "[INFO] ";
+                    std::cout << dump;
                     break;
                 case MessageType::Warning:
                     set_console_output_color(ConsoleColor::yellow);
-                    log_ss << "[WARNING] ";
-                    std::cout << "[WARNING] ";
+                    std::cout << dump;
                     break;
                 case MessageType::Error:
                     set_console_output_color(ConsoleColor::red);
-                    log_ss << "[ERROR] ";
-                    std::cout << "[ERROR] ";
+                    std::cout << dump;
                     break;
             }
             set_console_output_color(ConsoleColor::white);
 
-            (std::cout << ... << args) << '\n';
-
-            (log_ss << ... << args) << '\n';
+            std::getline(log_ss, dump);
+            std::cout << dump << std::endl;
 
             #ifdef DEBUG
             std::filesystem::create_directories("build/runtime_files");
@@ -104,7 +76,6 @@ class Logger
             #endif
 
             std::fstream file(path, std::ios::app);
-            static bool can_open = true;
 
             if(!file.is_open() && can_open)
             {
@@ -116,7 +87,7 @@ class Logger
             }
 
             can_open = true;    //in case program suddenly regains th ability to open
-            file << log_ss.str();
+            file << log_ss.str() << '\n';
         }
         catch(...)
         {
@@ -129,20 +100,25 @@ class Logger
     {
         try
         {
+            std::time_t current_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+            std::string time_str = std::ctime(&current_time);
+            if (!time_str.empty() && time_str.back() == '\n')
+            {
+                time_str.pop_back();    //by default string end with '\n' which I am removing here
+            }
+
             std::stringstream log_ss;
+            log_ss << time_str << ' ';
 
             switch (type)
             {
                 case MessageType::Info:
-                    set_console_output_color(ConsoleColor::white);
                     log_ss << "[INFO] ";
                     break;
                 case MessageType::Warning:
-                    set_console_output_color(ConsoleColor::yellow);
                     log_ss << "[WARNING] ";
                     break;
                 case MessageType::Error:
-                    set_console_output_color(ConsoleColor::red);
                     log_ss << "[ERROR] ";
                     break;
             }
@@ -156,14 +132,5 @@ class Logger
         }
     }
 
-    static std::string& prep_message(std::string& msg)
-    {
-        int pos_to__delete = msg.find("[ERROR] ");
-        if(pos_to__delete != std::string::npos)
-        {
-            msg.erase(pos_to__delete, std::string("[ERROR] ").size());
-        }
-
-        return msg;
-    }
+    static std::string prep_message(std::string msg);
 };

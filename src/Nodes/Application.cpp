@@ -3,6 +3,8 @@
 #include "Nodes/FPSCounter.hpp"
 #include <stack>
 
+std::mutex Application::application_mutex;
+
 Application::Application()
 {
     /*
@@ -28,6 +30,7 @@ Application::Application()
 
 Application& Application::instance()
 {
+    std::lock_guard<std::mutex> lock(application_mutex);
     static Application instance_;
     return instance_;
 }
@@ -100,7 +103,7 @@ void Application::run()
 
 void Application::close()
 {
-    //acts pretty much like a destructor, so any autosave on quit goes here
+    //acts pretty much like a destructor, so any autosave on quit goes hereog");
     window.close();
 }
 

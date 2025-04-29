@@ -1,24 +1,12 @@
 #pragma once
+#include "Utility/Exceptions.hpp"
+#include "Utility/Various.hpp"
 #include "Nodes.hpp"
 #include <SFML/Graphics.hpp>
 #include <typeindex>
 #include <iostream>
+#include <mutex>
 #include <map>
-
-class ManagerNotFoundException : public std::exception
-{
-    private:
-    std::string msg;
-    public:
-    ManagerNotFoundException(std::string type_name)
-    {
-        msg = Logger::format(Logger::MessageType::Error, "Manager of type: ", type_name, " has not been found.");
-    }
-    const char* what() const noexcept override
-    {
-        return msg.c_str();
-    }
-};
 
 class Application
 {
@@ -35,6 +23,7 @@ class Application
     sf::Clock clock;
     std::shared_ptr<Node> root; //temporary (?)
     std::map<std::type_index, std::shared_ptr<Node>> managers;
+    static std::mutex application_mutex;
 
     Application();
 
