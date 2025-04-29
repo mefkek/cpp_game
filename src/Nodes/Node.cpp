@@ -56,7 +56,7 @@ std::ostream& operator<<(std::ostream& os, std::shared_ptr<Node>& n)
     #ifdef __GNUG__
     os << demangle(std::type_index(typeid(*n)).name()) << n.get();
     #else
-    is << std::type_index(typeid(*n)).name() << n.get();
+    os << std::type_index(typeid(*n)).name() << n.get();
     #endif
 
     return os;
