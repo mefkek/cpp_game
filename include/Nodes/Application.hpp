@@ -12,7 +12,7 @@ class ManagerNotFoundException : public std::exception
     public:
     ManagerNotFoundException(std::string type_name)
     {
-        msg = "Manager of type: " + type_name +  " haven't been found.\n";
+        msg = Logger::format(Logger::MessageType::Error, "Manager of type: ", type_name, " has not been found.");
     }
     const char* what() const noexcept override
     {

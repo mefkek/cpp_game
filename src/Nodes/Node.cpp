@@ -45,7 +45,8 @@ void Node::kill()
         return;
     }
 
-    std::cerr << "Tried removing parentless node (may be root).\n";
+    Logger::log(Logger::MessageType::Warning,
+                "Tried removing parentless node ", this->shared_from_this(), " (may be root).");
 }
 
 std::ostream& operator<<(std::ostream& os, std::shared_ptr<Node>& n)

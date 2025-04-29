@@ -1,4 +1,5 @@
 #pragma once
+#include "Utility/Logger.hpp"
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -40,7 +41,7 @@ class Node : public std::enable_shared_from_this<Node>
             return;
         }
 
-        std::cerr << "Tried to add invalid child type.\n";
+        Logger::log(Logger::MessageType::Warning, "Node ", this->shared_from_this(), " tried to add invalid child type.");
     }
 
     void remove_child(std::shared_ptr<Node>);

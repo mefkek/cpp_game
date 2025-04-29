@@ -7,7 +7,7 @@ FPSCounter::FPSCounter()
 {
     if(!font.openFromFile("Fonts/ARIAL.TTF"))
     {
-        throw "Font not found\n";
+        throw Logger::format(Logger::MessageType::Error, "Font at path \"Fonts/ARIAL.TTF\" not found.");
     }
 
     text = std::make_unique<sf::Text>(font);
