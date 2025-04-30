@@ -12,14 +12,13 @@ void ActorManager::removeActor(const std::shared_ptr<Actor>& actor) {
     );
 }
 
-/*void ActorManager::update(float delta) {
-    // 1) Update wszystkich aktorów
+void ActorManager::update(float delta) {
+   /* // 1) Update wszystkich aktorów
     for (auto& actor : actors) {
         actor->update(delta);
     }
 
-    // 2) Usuń tych, którzy się "zabijają" (isDead()==true)
-    actors.erase(
+    // 2) Usuń tych, którzy się "zabijają"
         std::remove_if(
             actors.begin(), actors.end(),
             [](const std::shared_ptr<Actor>& actor) {
@@ -27,5 +26,5 @@ void ActorManager::removeActor(const std::shared_ptr<Actor>& actor) {
             }
         ),
         actors.end()
-    );
-}*/
+    );*/
+}
