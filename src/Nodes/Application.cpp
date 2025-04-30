@@ -103,7 +103,7 @@ void Application::run()
 
 void Application::close()
 {
-    //acts pretty much like a destructor, so any autosave on quit goes hereog");
+    //acts pretty much like a destructor, so any autosave on quit goes here");
     window.close();
 }
 

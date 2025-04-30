@@ -1,10 +1,6 @@
 #pragma once
-#include <iostream>
-#include <fstream>
 #include <sstream>
-#include <chrono>
 #include <mutex>
-#include <ctime>
 
 #ifdef DEBUG
 #include <filesystem>
@@ -12,8 +8,16 @@
 
 class Logger
 {
-    private:
+    public:
+    enum MessageType : unsigned char
+    {
+        Info = 0,
+        Warning = 1,
+        Error = 2,
+        Fatal = 3
+    };
 
+    private:
     static bool can_open;
     static std::mutex log_mutex;
 
@@ -25,48 +29,21 @@ class Logger
     };
 
     static void set_console_output_color(ConsoleColor color);
-    
-    public:
-    enum MessageType : unsigned char
-    {
-        Info = 0,
-        Warning = 1,
-        Error = 2
-    };
+    static std::string get_current_time();
+    static void write_to_file(const std::string& path, std::stringstream& log_ss, const std::string& time_str);
+    static void write_to_console(Logger::MessageType type, std::stringstream& log_ss, std::string& time_str);
 
+    public:
     template<typename ... Args>
     static void log(Logger::MessageType type, Args&&... args)
     {
         try
         {
+            std::string time_str;
             std::stringstream log_ss(Logger::format(type, std::forward<Args>(args)...));
             std::lock_guard<std::mutex> lock(log_mutex);
-            std::string dump, time_str;;
-
-            std::getline(log_ss, dump, '[');
-            time_str = dump;
-            std::cout << dump;
-            std::getline(log_ss, dump, ']');
-
-            switch (type)
-            {
-                case MessageType::Info:
-                    set_console_output_color(ConsoleColor::white);
-                    std::cout << dump;
-                    break;
-                case MessageType::Warning:
-                    set_console_output_color(ConsoleColor::yellow);
-                    std::cout << dump;
-                    break;
-                case MessageType::Error:
-                    set_console_output_color(ConsoleColor::red);
-                    std::cout << dump;
-                    break;
-            }
-            set_console_output_color(ConsoleColor::white);
-
-            std::getline(log_ss, dump);
-            std::cout << dump << std::endl;
+            
+            write_to_console(type, log_ss, time_str);
 
             #ifdef DEBUG
             std::filesystem::create_directories("build/runtime_files");
@@ -75,23 +52,21 @@ class Logger
             const std::string path = "Logs.txt";
             #endif
 
-            std::fstream file(path, std::ios::app);
-
-            if(!file.is_open() && can_open)
-            {
-                can_open = false;
-                set_console_output_color(ConsoleColor::yellow);
-                std::cout << time_str << " [WARNING] ";
-                set_console_output_color(ConsoleColor::white);
-                std::cout << "Could not open \"" << path << "\" file\n";
-            }
-
-            can_open = true;    //in case program suddenly regains th ability to open
-            file << log_ss.str() << '\n';
+            write_to_file(path, log_ss, time_str);
         }
         catch(...)
-        {
-            printf("[FATAL] Log creation failed.\n");
+        {            
+            try
+            {
+                std::stringstream log_ss(Logger::format(MessageType::Fatal, "Log creation failed."));
+                std::string time_dump;
+                std::lock_guard<std::mutex> lock(log_mutex);
+                write_to_console(MessageType::Fatal, log_ss, time_dump);
+            }
+            catch(...)
+            {
+                printf("[FATAL] Log creation failed.\n");
+            }
         }
     }
 
@@ -100,15 +75,8 @@ class Logger
     {
         try
         {
-            std::time_t current_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-            std::string time_str = std::ctime(&current_time);
-            if (!time_str.empty() && time_str.back() == '\n')
-            {
-                time_str.pop_back();    //by default string end with '\n' which I am removing here
-            }
-
             std::stringstream log_ss;
-            log_ss << time_str << ' ';
+            log_ss << get_current_time() << ' ';
 
             switch (type)
             {
@@ -121,6 +89,9 @@ class Logger
                 case MessageType::Error:
                     log_ss << "[ERROR] ";
                     break;
+                case MessageType::Fatal:
+                    log_ss << "[FATAL] ";
+                    break;
             }
 
             (log_ss << ... << args);
@@ -128,7 +99,14 @@ class Logger
         }
         catch(...)
         {
-            return "[ERROR] Unexpected error, log formating failed.";
+            try
+            {
+                return Logger::format(MessageType::Fatal, "Log creation failed.");
+            }
+            catch(...)
+            {
+                return "[FATAL] Unexpected error, log formating failed.";
+            }
         }
     }
 
