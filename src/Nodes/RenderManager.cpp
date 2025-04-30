@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
+#include "Utility/Exceptions.hpp"
 
 /*
     NOTES:
@@ -11,37 +12,6 @@
     related construction should be included. For now its good.
 */
 
-class DuplicateRenderLayerException : public std::exception
-{
-    /*
-        if (two layers with the same name) then
-            dont
-        endif
-    */
-    private:
-    std::string message = "Attempted to create a render layer with duplicate name: ";
-    public:
-    DuplicateRenderLayerException(const std::string& name)
-    {
-        message += name + ".\n";
-    }
-    const char* what() const noexcept override
-    {
-        return message.c_str();
-    }
-};
-
-class NoWindowGivenException: public std::exception
-{
-    /*
-        for when there is no window given
-    */
-    public:
-    const char* what() const noexcept override
-    {
-        return "Render manger: no window given.\n";
-    }
-};
 
 RenderLayer::RenderLayer(sf::Vector2u size)
 {
@@ -70,7 +40,7 @@ sf::Vector2u RenderManager::get_render_texture_size(const std::string& name)
         }
     }
 
-    std::cerr << "Layer with name: " << name << " has not been found.\n";
+    Logger::log(Logger::MessageType::Warning, "Layer with name: ", name, " has not been found.");
     return {-1u, -1u};
 }
 
@@ -105,7 +75,7 @@ void RenderManager::add_drawable(const std::string& layer, const std::weak_ptr<s
         return;
     }
 
-    std::cerr << "Layer with the name: " << layer << " has not been found\n";
+    Logger::log(Logger::MessageType::Warning, "Layer with name: ", layer, " has not been found.");
 }
 
 void RenderManager::remove_drawable(const std::string& layer, const std::weak_ptr<sf::Drawable>& dw)
@@ -114,25 +84,25 @@ void RenderManager::remove_drawable(const std::string& layer, const std::weak_pt
     {
         unsigned char p = string_ref[layer];
          //find sf::Drawable, wont work for nullptr (as it should)
-         auto dw_it = std::find_if(layers[p].drawables.begin(), layers[p].drawables.end(),
-         [&](std::weak_ptr<sf::Drawable> other)
-             {
-                 return !dw.expired() && !other.expired()
-                         && dw.lock() == other.lock();
-             }
-         );
+        auto dw_it = std::find_if(layers[p].drawables.begin(), layers[p].drawables.end(),
+        [&](std::weak_ptr<sf::Drawable> other)
+            {
+                return !dw.expired() && !other.expired()
+                        && dw.lock() == other.lock();
+            }
+        );
 
-         if(dw_it != layers[p].drawables.end())
-         {
-            layers[p].drawables.erase(dw_it);
-             return;
-         }
+        if(dw_it != layers[p].drawables.end())
+        {
+           layers[p].drawables.erase(dw_it);
+            return;
+        }
 
-         std::cerr << "Drawable with address: " << dw.lock().get() << " has not been found\n";
+        Logger::log(Logger::MessageType::Warning, "Drawable with address: ", dw.lock().get(), " has not been found.");
         //when nulltr prints "Drawable with address: 0x0 has not been found"
     }
 
-    std::cerr << "Layer with the name: " << layer << " has not been found\n";
+    Logger::log(Logger::MessageType::Warning, "Layer with name: ", layer, " has not been found.");
 }
 
 void RenderManager::remove_layer(const std::string& name)
@@ -152,7 +122,7 @@ void RenderManager::remove_layer(const std::string& name)
         }
     }
     
-    std::cerr << "Layer with name: " << name << " has not been found\n";
+    Logger::log(Logger::MessageType::Warning, "Layer with name: ", name, " has not been found.");
 }
 
 void RenderManager::move_view(const std::string& layer, sf::Vector2f offset)
@@ -165,7 +135,7 @@ void RenderManager::move_view(const std::string& layer, sf::Vector2f offset)
         return;
     }
 
-    std::cout << "Layer with the name: " << layer << " has not been found.\n";
+    Logger::log(Logger::MessageType::Warning, "Layer with name: ", layer, " has not been found.");
 }
 
 void RenderManager::rescale()

@@ -1,5 +1,6 @@
 #include "Nodes/FPSCounter.hpp"
 #include "Nodes/RenderManager.hpp"
+#include "Utility/Exceptions.hpp"
 #include <iomanip>
 #include <sstream>
 
@@ -7,7 +8,7 @@ FPSCounter::FPSCounter()
 {
     if(!font.openFromFile("Fonts/ARIAL.TTF"))
     {
-        throw "Font not found\n";
+        throw FileNotFoundException("Fonts/ARIAL.TTF");
     }
 
     text = std::make_unique<sf::Text>(font);
@@ -25,8 +26,17 @@ void FPSCounter::set_position(sf::Vector2f pos)
 
 void FPSCounter::update(float delta)
 {
-    float fps = 1 / delta;
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(0) << fps;
-    text->setString(ss.str());
+    time_passed += delta;
+    frames++;
+
+    int updates_per_second = 5;
+    if(time_passed >= (1.f/updates_per_second))
+    {
+        float fps = frames / time_passed;
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(0) << fps;
+        text->setString(ss.str());
+        time_passed = 0;
+        frames = 0;
+    }
 }
