@@ -3,6 +3,7 @@ project(CPP_GAME LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+add_compile_options("$<$<CONFIG:DEBUG>:-DDEBUG>")
 
 include(FetchContent)
 FetchContent_Declare(SFML
