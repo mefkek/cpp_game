@@ -20,6 +20,7 @@ std::string demangle(const char* name)
 std::string print_tree()
 {
     std::stringstream res;
+    res << "Printing current tree structure:\n";
     struct Visited
     {
         const std::shared_ptr<Node> ptr;
@@ -37,7 +38,7 @@ std::string print_tree()
         Visited current = q.front();
         q.pop();
 
-        res << std::string(current.level * 2, ' ') << current.ptr << '\n';
+        res << std::string(current.level * 2, ' ') << (current.level > 0 ? ">>" : "") << current.ptr << '\n';
 
         for(const auto& ch : current.ptr->get_children())
         {

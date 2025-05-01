@@ -1,4 +1,4 @@
-#include "Nodes/EventsManager.hpp"
+#include "Nodes/EventManager.hpp"
 #include "Nodes/Application.hpp"
 #include "Utility/Logger.hpp"
 #include <iostream>
@@ -49,5 +49,23 @@ void EventManager::update(float delta)
                 }
             }
         });
+    }
+}
+
+std::weak_ptr<TimedEvent> EventManager::register_timed_event(float time, std::function<void(void)> callable, std::weak_ptr<Node> caller, int reps)
+{
+    if(caller.expired())    //for events that should happen no matter what
+    {
+        caller = weak_from_this();
+    }
+
+    return this->add_child<TimedEvent>(time, callable, caller, reps);
+}
+
+void EventManager::remove_timed_event(std::weak_ptr<TimedEvent> ev)
+{
+    if(auto ev_ptr = ev.lock())
+    {
+        this->remove_child(ev_ptr);
     }
 }

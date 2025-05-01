@@ -22,6 +22,7 @@ Application::Application()
 
     register_manager<RenderManager>();
     register_manager<EventManager>();
+
     root_level.push_back(get_manager<EventManager>());
 
     get_manager<RenderManager>()->set_window(&window);
@@ -52,6 +53,7 @@ void Application::run()
     /*
         What should happen here:
          - no setting up anything, just the loop (leave setup in constructor)
+            {This might not be a good idea after all, maybe some one time setup function?}
          - start whiel loop
          - process events
          - update each tree node (bfs alghorithm)
@@ -104,6 +106,9 @@ const std::vector<std::shared_ptr<Node>>& Application::get_root_level()
 
 void Application::close()
 {
+    #ifdef DEBUG
+    Logger::log(Logger::MessageType::Info, print_tree());
+    #endif
     //acts pretty much like a destructor, so any autosave on quit goes here");
     window.close();
 }
