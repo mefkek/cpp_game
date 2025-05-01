@@ -29,7 +29,7 @@ Application::Application()
     get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps.lock()->text));
 
     get_manager<EventManager>()->register_sfml_event<sf::Event::Closed>([&](const sf::Event::Closed& e) {close();}, std::weak_ptr(root));
-    get_manager<EventManager>()->register_sfml_event<sf::Event::Resized>([&](const sf::Event::Resized& e) {mg.rescale();}, std::weak_ptr(root));
+    get_manager<EventManager>()->register_sfml_event<sf::Event::Resized>([&](const sf::Event::Resized& e) {get_manager<RenderManager>()->rescale();}, std::weak_ptr(root));
     //********************************************/
 }
 
@@ -62,7 +62,7 @@ void Application::run()
         float delta = clock.restart().asSeconds();
         std::stack<StackElement> s;   //pointer : visited pair
 
-        get_manager<EventManager>()->update();
+        get_manager<EventManager>()->update(delta);
         //managers should be update in the node that added them
 
         /*

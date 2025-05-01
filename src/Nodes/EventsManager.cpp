@@ -1,5 +1,6 @@
 #include "Nodes/EventsManager.hpp"
 #include "Nodes/Application.hpp"
+#include "Utility/Logger.hpp"
 #include <iostream>
 #include <algorithm>
 
@@ -18,7 +19,7 @@ void EventManager::remove_sfml_event(unsigned long event_id)
         }
     }
 
-    std::cerr << "Event with id: " << event_id << " has not been found.\n";
+    Logger::log(Logger::MessageType::Warning, "Sfml event with id: ", event_id, " has not been found.");
 }
 
 void EventManager::update(float delta)
