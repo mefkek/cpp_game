@@ -1,7 +1,7 @@
 #include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
 #include "Nodes/FPSCounter.hpp"
-#include "Nodes/EventsManager.hpp"
+#include "Nodes/EventManager.hpp"
 #include <stack>
 
 std::mutex Application::application_mutex;
@@ -16,20 +16,21 @@ Application::Application()
 
     //This block can stay for now, but this should be handled properly later on
     //(program argumetns -d as an separete debug node maybe?)
-    root = std::make_shared<FPSCounter>();
-    std::weak_ptr<FPSCounter> fps = std::dynamic_pointer_cast<FPSCounter>(root);
-    fps.lock()->set_position({15, 15});
+    std::shared_ptr<FPSCounter> fps = std::make_shared<FPSCounter>();
+    fps->set_position({15, 15});
+    root_level.push_back(fps);
 
     register_manager<RenderManager>();
     register_manager<EventManager>();
+    root_level.push_back(get_manager<EventManager>());
 
     get_manager<RenderManager>()->set_window(&window);
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
-    get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps.lock()->text));
+    get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps->text));
 
-    get_manager<EventManager>()->register_sfml_event<sf::Event::Closed>([&](const sf::Event::Closed& e) {close();}, std::weak_ptr(root));
-    get_manager<EventManager>()->register_sfml_event<sf::Event::Resized>([&](const sf::Event::Resized& e) {get_manager<RenderManager>()->rescale();}, std::weak_ptr(root));
+    get_manager<EventManager>()->register_sfml_event<sf::Event::Closed>([&](const sf::Event::Closed& e) {close();}, std::weak_ptr(fps));
+    get_manager<EventManager>()->register_sfml_event<sf::Event::Resized>([&](const sf::Event::Resized& e) {get_manager<RenderManager>()->rescale();}, std::weak_ptr(fps));
     //********************************************/
 }
 
@@ -61,8 +62,6 @@ void Application::run()
     {
         float delta = clock.restart().asSeconds();
         std::stack<StackElement> s;   //pointer : visited pair
-
-        get_manager<EventManager>()->update(delta);
         //managers should be update in the node that added them
 
         /*
@@ -70,7 +69,10 @@ void Application::run()
             Depending on SceneManager implementation that may be moved there
         */
 
-        s.push({root, false});
+        for(auto& node : root_level)
+        {
+            s.push({node, false});
+        }
             
         while(!s.empty())
         {
@@ -93,6 +95,11 @@ void Application::run()
 
         get_manager<RenderManager>()->update(delta);
     }
+}
+
+const std::vector<std::shared_ptr<Node>>& Application::get_root_level()
+{
+    return root_level;
 }
 
 void Application::close()

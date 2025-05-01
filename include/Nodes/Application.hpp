@@ -1,7 +1,6 @@
 #pragma once
 #include "Utility/Exceptions.hpp"
 #include "Utility/Various.hpp"
-#include "EventsManager.hpp"    //tmp
 #include "Nodes.hpp"
 #include <SFML/Graphics.hpp>
 #include <typeindex>
@@ -22,7 +21,7 @@ class Application
     private:
     sf::RenderWindow window;
     sf::Clock clock;
-    std::shared_ptr<Node> root; //temporary (?)
+    std::vector<std::shared_ptr<Node>> root_level; //temporary (?)
     std::map<std::type_index, std::shared_ptr<Node>> managers;
     static std::mutex application_mutex;
     
@@ -61,6 +60,8 @@ class Application
 
         return nullptr;
     }
+
+    const std::vector<std::shared_ptr<Node>>& get_root_level();
 
     void close();
 };
