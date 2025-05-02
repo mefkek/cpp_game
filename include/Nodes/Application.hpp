@@ -24,7 +24,6 @@ class Application
     std::vector<std::shared_ptr<Node>> root_level; //temporary (?)
     std::map<std::type_index, std::shared_ptr<Node>> managers;
     static std::mutex application_mutex;
-    std::weak_ptr<CustomEvent<int>> ev;
     
     Application();
 
