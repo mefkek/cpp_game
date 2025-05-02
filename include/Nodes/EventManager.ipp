@@ -1,11 +1,43 @@
 template<class T>
-unsigned long EventManager::register_sfml_event(std::function<void(const T)> callable, std::weak_ptr<Node> caller)
+std::weak_ptr<SFMLEvent> EventManager::register_sfml_event(std::function<void(const T&)> callable,
+                                                           std::weak_ptr<Node> caller)
 {
-    SFMLEvent n_event;
-    n_event.callable = [callable](const sf::Event& e){callable(*e.getIf<T>());};
-    n_event.caller = caller;
-    n_event.u_id = last_id++;
+    if(!sfml_events)
+    {
+        sfml_events = add_child<ContainerNode<SFMLEvent>>().lock();
+    }
+    if(caller.expired())
+    {
+        caller = shared_from_this();
+    }
 
-    sfml_events[typeid(T)].push_back(n_event);  //typeid becouse event is a variant
-    return n_event.u_id;
+    return sfml_events->add_element([callable](const sf::Event& e)
+                                            {
+                                                if(auto event = e.getIf<T>())
+                                                {
+                                                    callable(*event);
+                                                }
+                                            }, caller);
+}
+
+template<typename... Args>
+std::weak_ptr<CustomEvent<Args...>> EventManager::register_custom_event(std::function<void(Args...)> callable,
+                                    std::weak_ptr<Node> caller)
+{
+    if(!custom_events)
+    {
+        custom_events = add_child<ContainerNode<ICustomEvent>>().lock();
+    }
+    if(caller.expired())
+    {
+        caller = shared_from_this();
+    }
+
+    return custom_events->add_child<CustomEvent<Args...>>(callable, caller);
+}
+
+template<typename... Args>
+void EventManager::remove_custom_event(std::weak_ptr<CustomEvent<Args...>> ev)
+{
+    custom_events->remove_child(ev);
 }

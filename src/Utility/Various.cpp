@@ -1,7 +1,7 @@
 #include "Utility/Various.hpp"
 #include "Nodes/Application.hpp"
 #include <sstream>
-#include <queue>
+#include <stack>
 
 std::string demangle(const char* name)
 {
@@ -27,22 +27,22 @@ std::string print_tree()
         unsigned int level;
     };
 
-    std::queue<Visited> q;
+    std::stack<Visited> s;
     for(const auto& node : Application::instance().get_root_level())
     {
-        q.push({node, 0});
+        s.push({node, 0});
     }
 
-    while(!q.empty())
+    while(!s.empty())
     {
-        Visited current = q.front();
-        q.pop();
+        Visited current = s.top();
+        s.pop();
 
-        res << std::string(current.level * 2, ' ') << (current.level > 0 ? ">>" : "") << current.ptr << '\n';
+        res << std::string(current.level * 2, ' ') << ">>" << current.ptr << '\n';
 
         for(const auto& ch : current.ptr->get_children())
         {
-            q.push({ch, current.level + 1});
+            s.push({ch, current.level + 1});
         }
     }
 

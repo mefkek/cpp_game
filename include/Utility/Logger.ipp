@@ -9,31 +9,30 @@ std::string Logger::format(Logger::MessageType type, Args &&...args) noexcept
         switch (type)
         {
         case MessageType::Info:
-            raw << std::left << std::setw(10) << "[INFO] ";
+            raw << std::left << std::setw(10) << "[INFO]";
             break;
         case MessageType::Warning:
-            raw << std::left << std::setw(10) << "[WARNING] ";
+            raw << std::left << std::setw(10) << "[WARNING]";
             break;
         case MessageType::Error:
-            raw << std::left << std::setw(10) << "[ERROR] ";
+            raw << std::left << std::setw(10) << "[ERROR]";
             break;
         case MessageType::Fatal:
-            raw << std::left << std::setw(10) << "[FATAL] ";
+            raw << std::left << std::setw(10) << "[FATAL]";
             break;
         }
-
+        raw << '\n';
         int preaumbule_size = raw.str().size();
 
         (raw << ... << args);
 
         std::string dump;
-        std::getline(raw, dump);
-        log_ss << dump << '\n';
         while (std::getline(raw, dump))
         {
-            log_ss << std::string(preaumbule_size, ' ') << dump << '\n';
+            log_ss << dump << '\n';
         }
 
+        log_ss << std::string(preaumbule_size, '*') << '\n';
         return log_ss.str();
     }
     catch (...)

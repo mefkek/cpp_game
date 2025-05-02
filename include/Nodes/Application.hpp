@@ -24,6 +24,7 @@ class Application
     std::vector<std::shared_ptr<Node>> root_level; //temporary (?)
     std::map<std::type_index, std::shared_ptr<Node>> managers;
     static std::mutex application_mutex;
+    std::weak_ptr<CustomEvent<int>> ev;
     
     Application();
 
@@ -41,7 +42,8 @@ class Application
     template <typename T, typename ... Args>
     void register_manager(Args&&... args)
     {
-        managers[std::type_index(typeid(T))] = std::make_shared<T>(std::forward<Args>(args)...);
+        root_level.emplace_back(std::make_shared<T>(std::forward<Args>(args)...));
+        managers[std::type_index(typeid(T))] = root_level.back();
     }
 
     template <typename T>

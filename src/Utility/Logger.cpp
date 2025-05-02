@@ -55,9 +55,10 @@ void Logger::write_to_console(Logger::MessageType type, std::stringstream& log_s
     std::getline(log_ss, dump, '[');
     time_str = dump;
     std::cout << dump;
-    std::getline(log_ss, dump, ']');
+    std::getline(log_ss, dump);
 
-    dump = "[" + dump + "]";
+    dump = "[" + dump;
+
     switch (type)
     {
         case MessageType::Info:
@@ -78,6 +79,7 @@ void Logger::write_to_console(Logger::MessageType type, std::stringstream& log_s
             break;
     }
     set_console_output_color(ConsoleColor::white);
+    std::cout << '\n';
 
     while (std::getline(log_ss, dump))
     {

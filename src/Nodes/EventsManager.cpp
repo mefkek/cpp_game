@@ -4,22 +4,9 @@
 #include <iostream>
 #include <algorithm>
 
-void EventManager::remove_sfml_event(unsigned long event_id)
+void EventManager::remove_sfml_event(std::weak_ptr<SFMLEvent> ev)
 {
-    for(auto& [event, handlers] : sfml_events)
-    {
-        //find based on unique id, if you need more than 4.294.967.295 events then its beetween god and you
-        auto it = std::find_if(handlers.begin(), handlers.end(),
-                               [&](const SFMLEvent o){return o.u_id == event_id;});
-
-        if(it != handlers.end())
-        {
-            handlers.erase(it);
-            return;
-        }
-    }
-
-    Logger::log(Logger::MessageType::Warning, "Sfml event with id: ", event_id, " has not been found.");
+    sfml_events->remove_element(ev);
 }
 
 void EventManager::update(float delta)
@@ -29,43 +16,39 @@ void EventManager::update(float delta)
     */
     while(const std::optional event = Application::instance().get_window().pollEvent())
     {
-        event->visit([&](const auto& ev_variant)
+        for(auto ev_it = sfml_events->get_children().begin(); ev_it != sfml_events->get_children().end();)
         {
-            using T = std::decay_t<decltype(ev_variant)>;
-            auto it = sfml_events.find(typeid(T));
-            if(it != sfml_events.end())
+            if(auto ev = std::dynamic_pointer_cast<SFMLEvent>(*ev_it))
             {
-                for(auto handler = it->second.begin(); handler != it->second.end();)
+                if(!ev->caller.expired())
                 {
-                    if(handler->caller.lock())
-                    {
-                        handler->callable(*event);
-                        ++handler;
-                    }
-                    else
-                    {
-                        handler = it->second.erase(handler);
-                    }
+                    ev->callable(*event);
+                    ++ev_it;
+                }
+                else
+                {
+                    ev_it = sfml_events->get_children().erase(ev_it);
                 }
             }
-        });
+        }
     }
 }
 
-std::weak_ptr<TimedEvent> EventManager::register_timed_event(float time, std::function<void(void)> callable, std::weak_ptr<Node> caller, int reps)
+std::weak_ptr<TimedEvent> EventManager::register_timed_event(float time, std::function<void(float)> callable, std::weak_ptr<Node> caller, int reps)
 {
-    if(caller.expired())    //for events that should happen no matter what
+    if(!timed_events)
     {
-        caller = weak_from_this();
+        timed_events = add_child<ContainerNode<TimedEvent>>().lock();
+    }
+    if(caller.expired())
+    {
+        caller = shared_from_this();
     }
 
-    return this->add_child<TimedEvent>(time, callable, caller, reps);
+    return timed_events->add_element(time, callable, reps, caller);
 }
 
 void EventManager::remove_timed_event(std::weak_ptr<TimedEvent> ev)
 {
-    if(auto ev_ptr = ev.lock())
-    {
-        this->remove_child(ev_ptr);
-    }
+    timed_events->remove_element(ev);
 }

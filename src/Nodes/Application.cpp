@@ -21,17 +21,25 @@ Application::Application()
     root_level.push_back(fps);
 
     register_manager<RenderManager>();
-    register_manager<EventManager>();
-
-    root_level.push_back(get_manager<EventManager>());
+    register_manager<EventManager>();   //maybe should be added last
 
     get_manager<RenderManager>()->set_window(&window);
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
     get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps->text));
 
-    get_manager<EventManager>()->register_sfml_event<sf::Event::Closed>([&](const sf::Event::Closed& e) {close();}, std::weak_ptr(fps));
-    get_manager<EventManager>()->register_sfml_event<sf::Event::Resized>([&](const sf::Event::Resized& e) {get_manager<RenderManager>()->rescale();}, std::weak_ptr(fps));
+    get_manager<EventManager>()->register_sfml_event<sf::Event::Closed>([=](const sf::Event::Closed& e) {close();});
+    get_manager<EventManager>()->register_sfml_event<sf::Event::Resized>([=](const sf::Event::Resized& e) {get_manager<RenderManager>()->rescale();});
+    get_manager<EventManager>()->register_sfml_event<sf::Event::KeyPressed>([](const sf::Event::KeyPressed& e)
+                                                                            {
+                                                                                if(e.scancode == sf::Keyboard::Scan::Enter)
+                                                                                {
+                                                                                    Logger::log(Logger::MessageType::Warning, "Enter key pressed");
+                                                                                }
+                                                                            });
+    get_manager<EventManager>()->register_timed_event(10.f, [](float time){Logger::log(Logger::MessageType::Warning, time, " seconds have passed");});
+
+    ev = get_manager<EventManager>()->register_custom_event(std::function<void(int)>([](int c){Logger::log(Logger::MessageType::Warning, "Application started, funny integer: ", c);}));
     //********************************************/
 }
 
@@ -59,7 +67,7 @@ void Application::run()
          - update each tree node (bfs alghorithm)
          - draw and display
     */
-
+    ev.lock()->rise(42);
     while (window.isOpen())
     {
         float delta = clock.restart().asSeconds();
@@ -94,8 +102,6 @@ void Application::run()
                 s.pop();
             }
         }
-
-        get_manager<RenderManager>()->update(delta);
     }
 }
 

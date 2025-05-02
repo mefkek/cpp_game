@@ -1,7 +1,7 @@
 #include "Nodes/EventManager.hpp"
 
-TimedEvent::TimedEvent(float time, std::function<void(void)> callable, std::weak_ptr<Node> caller, int reps) :
-                       time_set(time), callable(callable), caller(caller), repetitions(reps) {}
+TimedEvent::TimedEvent(float time, std::function<void(float)> callable, int reps, std::weak_ptr<Node> caller) :
+                       time_set(time), repetitions(reps), EventBase(callable, caller) {}
 
 void TimedEvent::update(float delta)
 {
@@ -10,12 +10,12 @@ void TimedEvent::update(float delta)
         time_elapsed += delta;
         if(time_elapsed >= time_set)
         {
+            callable(time_elapsed); //doesn't really do anything but an't be void
             time_elapsed = 0.f;
             if(repetitions < 0)
             {
                 --repetitions;
             }
-            callable();
         }
 
         if(repetitions == 0)
