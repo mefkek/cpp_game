@@ -9,8 +9,11 @@
 
 class Collider {
 public:
-  virtual void on_collision() = 0;
   virtual ~Collider() = default;
+
+  virtual bool collides_with(const Collider& other) const = 0;
+
+  virtual void on_collision() = 0;
 };
 
 class CollisionLayer {

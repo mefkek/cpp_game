@@ -6,7 +6,29 @@
 /// Perform collision detection between all colliders.
 /// This is currently just a placeholder.
 void CollisionManager::collide() {
-    // TODO: Add actual collision detection logic here
+    for (auto& [id, layer] : collision_layers) {
+        auto& colliders = layer.colliders;
+
+        colliders.erase(std::remove_if(colliders.begin(), colliders.end(),
+            [](const std::weak_ptr<Collider>& c) {
+                return c.expired();
+            }), colliders.end());
+
+        for (size_t i = 0; i < colliders.size(); ++i) {
+            auto a = colliders[i].lock();
+            if (!a) continue;
+
+            for (size_t j = i + 1; j < colliders.size(); ++j) {
+                auto b = colliders[j].lock();
+                if (!b) continue;
+
+                if (a->collides_with(*b)) {
+                    a->on_collision();
+                    b->on_collision();
+                }
+            }
+        }
+    }
 }
 
 /// Add a collider to a specific collision layer by name.
