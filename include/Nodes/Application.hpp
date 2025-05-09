@@ -1,7 +1,7 @@
 #pragma once
 #include "Utility/Exceptions.hpp"
 #include "Utility/Various.hpp"
-#include "Nodes.hpp"
+#include "Node.hpp"
 #include <SFML/Graphics.hpp>
 #include <typeindex>
 #include <iostream>
