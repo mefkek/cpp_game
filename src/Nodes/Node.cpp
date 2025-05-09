@@ -16,7 +16,13 @@ std::vector<std::shared_ptr<Node>>& Node::get_children()
 
 void Node::remove_child(std::shared_ptr<Node> ch)
 {
+    size_t size_b = children.size();
     children.erase(std::remove(children.begin(), children.end(), ch), children.end());
+
+    if(size_b != children.size())
+    {
+        Logger::log(Logger::MessageType::Warning, "Tried removind node: ", ch, "which is not a child of", shared_from_this(), ".");
+    }
 }
 
 void Node::kill()
@@ -38,7 +44,7 @@ void Node::kill()
                 "Tried removing parentless node ", this->shared_from_this(), " (may be root).");
 }
 
-std::ostream& operator<<(std::ostream& os, std::shared_ptr<Node>& n)
+std::ostream& operator<<(std::ostream& os, const std::shared_ptr<Node>& n)
 {
 
     // prints something like FPSCounter0x9309e50
