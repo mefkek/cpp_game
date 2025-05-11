@@ -5,7 +5,7 @@
 
 std::mutex Application::application_mutex;
 
-Application::Application()
+void Application::initialize()
 {
     /*
         If you want to have a bad time add a node here, i dare you
@@ -19,7 +19,7 @@ Application::Application()
     std::weak_ptr<FPSCounter> fps = std::dynamic_pointer_cast<FPSCounter>(root);
     fps.lock()->set_position({15, 15});
 
-    register_manager<RenderManager>(&window);
+    register_manager<RenderManager>();
 
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
@@ -50,6 +50,8 @@ void Application::run()
          - update each tree node (bfs alghorithm)
          - draw and display
     */
+
+    this->initialize();
 
     while (window.isOpen())
     {

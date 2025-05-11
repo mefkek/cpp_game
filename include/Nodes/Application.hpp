@@ -25,7 +25,8 @@ class Application
     std::map<std::type_index, std::shared_ptr<Node>> managers;
     static std::mutex application_mutex;
 
-    Application();
+    Application() = default;
+    void initialize();
 
     public:
     Application(const Application&) = delete;   //delete so it can't be copied
