@@ -6,7 +6,7 @@
 
 std::mutex Application::application_mutex;
 
-Application::Application()
+void Application::initialize()
 {
     /*
         If you want to have a bad time add a node here, i dare you
@@ -23,7 +23,6 @@ Application::Application()
     register_manager<RenderManager>();  //maybe should be added first
     register_manager<WindowEventManager>();     //just an empty node, at least for now
 
-    get_manager<RenderManager>()->set_window(&window);
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
     get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps->text));
@@ -60,6 +59,9 @@ void Application::run()
          - update each tree node (bfs alghorithm)
          - draw and display
     */
+
+    this->initialize();
+
     while (window.isOpen())
     {
         float delta = clock.restart().asSeconds();

@@ -24,8 +24,9 @@ class Application
     std::vector<std::shared_ptr<Node>> root_level; //temporary (?)
     std::map<std::type_index, std::shared_ptr<Node>> managers;
     static std::mutex application_mutex;
-    
-    Application();
+
+    Application() = default;
+    void initialize();
 
     public:
     Application(const Application&) = delete;   //delete so it can't be copied
@@ -41,7 +42,7 @@ class Application
     template <typename T, typename ... Args>
     void register_manager(Args&&... args)
     {
-        root_level.emplace_back(std::make_shared<T>(std::forward<Args>(args)...));
+        root_level.emplace_back(create<T>(std::forward<Args>(args)...));
         managers[std::type_index(typeid(T))] = root_level.back();
     }
 
