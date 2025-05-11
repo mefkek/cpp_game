@@ -1,6 +1,16 @@
+template <typename T, typename = void>
+struct is_streamable : std::false_type {};
+
+template <typename T>
+struct is_streamable<T, std::void_t<
+    decltype(std::declval<std::ostream&>() << std::declval<T>())
+>> : std::true_type {};
+
 template <typename... Args>
 std::string Logger::format(Logger::MessageType type, Args &&...args) noexcept
 {
+    static_assert((is_streamable<Args>::value && ...), "Logger::log not all arguments are streamable");
+
     try
     {
         std::stringstream log_ss, raw;

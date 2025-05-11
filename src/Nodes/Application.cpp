@@ -27,8 +27,16 @@ void Application::initialize()
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
     get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps->text));
 
-    create<SFMLEvent<sf::Event::Closed>>(get_manager<WindowEventManager>(), &get_window()).lock()->subscribe(get_manager<WindowEventManager>(), [=](const sf::Event::Closed& e) {close();});
-    create<SFMLEvent<sf::Event::Resized>>(get_manager<WindowEventManager>(), &get_window()).lock()->subscribe(get_manager<WindowEventManager>(), [=](const sf::Event::Resized& e) {get_manager<RenderManager>()->rescale();});
+    get_manager<WindowEventManager>()->get_event<sf::Event::Closed>()->
+        subscribe([&](const sf::Event::Closed& e){close();});
+    get_manager<WindowEventManager>()->get_event<sf::Event::Closed>()->
+        subscribe([&](const sf::Event::Closed& e){Logger::log(Logger::MessageType::Warning, "Application closed but yellow");});
+    get_manager<WindowEventManager>()->get_event<sf::Event::Resized>()->
+        subscribe([&](const sf::Event::Resized& e){get_manager<RenderManager>()->rescale();});
+    get_manager<WindowEventManager>()->get_event<sf::Event::Resized>()->
+        subscribe([](const sf::Event::Resized& e){Logger::log(Logger::MessageType::Info, "Window resized", e.size.x, " ", e.size.y);});
+    get_manager<WindowEventManager>()->get_event<sf::Event::FocusLost>()->
+        subscribe([](const sf::Event::FocusLost& e){Logger::log(Logger::MessageType::Warning, "Focus lost");});
 
     //get_manager<WindowEventManager>()->register_sfml_event<sf::Event::Closed>([=](const sf::Event::Closed& e) {close();});
     //get_manager<WindowEventManager>()->register_sfml_event<sf::Event::Resized>([=](const sf::Event::Resized& e) {get_manager<RenderManager>()->rescale();});

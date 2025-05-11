@@ -8,8 +8,13 @@
 #include <typeindex>
 #include <vector>
 
+class Event
+{
+    //empty class for storage
+};
+
 template<typename... func_args>
-class EventBase : public Node
+class EventBase : public Node, public Event
 {
     private:
     struct CallablePair
@@ -22,13 +27,10 @@ class EventBase : public Node
     };
 
     protected:
-    std::weak_ptr<Node> caller;
     std::vector<CallablePair> callables;
 
     public:
-    void update(float delta) override {};   //skip 
-
-    EventBase(std::weak_ptr<Node> caller) : caller(caller) {}
+    void update(float delta) override {};   //skip
 
     unsigned long subscribe(std::weak_ptr<Node> caller, std::function<void(func_args...)> func);
 
@@ -37,15 +39,19 @@ class EventBase : public Node
     void rise(func_args... args);
 };
 
+class ITryRise
+{
+    public:
+    virtual void try_rise(const std::optional<sf::Event> event) = 0;
+};
 
 template<typename Ev>
-class SFMLEvent : public EventBase<Ev>
+class SFMLEvent : public EventBase<Ev>, public ITryRise
 {
     private:
-    sf::WindowBase* window;
     public:
-    SFMLEvent(sf::WindowBase* window, std::weak_ptr<Node> caller);
-    void update(float delta) override;
+    void try_rise(const std::optional<sf::Event> event) override;
+    unsigned long subscribe(std::function<void(Ev)> func);
 };
 
 class TimedEvent : public EventBase<>
@@ -56,26 +62,22 @@ class TimedEvent : public EventBase<>
     int repetitions;
 
     public:
-    TimedEvent(float time, int reps, std::weak_ptr<Node> caller);
+    TimedEvent(float time, int reps);
     void update(float delta) override;
 };
 
 template<typename... func_args>
-class CustomEvent : public EventBase<func_args...>
+class CustomEvent : public EventBase<func_args...> {};
+
+class WindowEventManager : public ContainerNode<Event>
 {
+    private:
+    std::vector<std::function<bool(void)>> event_checks;
+
     public:
-    CustomEvent(std::weak_ptr<Node> caller);
+    template<typename T>
+    std::shared_ptr<SFMLEvent<T>> get_event();
+    void update(float delta) override;
 };
-
-class WindowEventManager : public ContainerNode<Node> {};   //this propably should be a container class with all sfml events
-
-template<typename Ev, typename... Args>
-std::weak_ptr<Ev> create(std::weak_ptr<Node> caller, Args&&... args);
-
-/*template<typename Ev, typename... Args>
-std::weak_ptr<SFMLEvent<Ev>> create_sfml_event(Args&&... args) 
-{
-    return create<SFMLEvent<Ev>>(Application::instance().get_manager<WindowEventManager>(), std::forward<Args>(args)...);
-}*/
 
 #include "EventManager.ipp"

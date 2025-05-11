@@ -14,17 +14,20 @@ class Node : public std::enable_shared_from_this<Node>
     std::vector<std::shared_ptr<Node>> children;
     std::weak_ptr<Node> parent;
 
+    template<typename T, typename... Args>
+    friend std::shared_ptr<T> create(Args&&... args);
+
     Node() = default;   //should only be used when adding root (friend Application?)
+    virtual void initialize() {}
 
     public:
-    virtual void initialize() {}
 
     virtual void update(float) = 0;
 
     std::vector<std::shared_ptr<Node>>& get_children();
 
     template <typename T, typename ... Args>
-    void add_child(Args&&... args);
+    std::weak_ptr<T> add_child(Args&&... args);
 
     void remove_child(std::shared_ptr<Node>);
 
