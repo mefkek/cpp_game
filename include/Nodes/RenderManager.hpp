@@ -25,7 +25,7 @@ class RenderManager : public Node
     sf::RenderWindow* window_ptr; //Pointer for resizing, as resizing could happen in Application constructor and cause bugs
 
     public:
-    void set_window(sf::RenderWindow* window);
+    RenderManager(sf::RenderWindow* window);
 
     sf::Vector2u get_render_texture_size(const std::string& name);
 

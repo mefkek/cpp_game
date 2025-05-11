@@ -12,18 +12,13 @@
     related construction should be included. For now its good.
 */
 
-
 RenderLayer::RenderLayer(sf::Vector2u size)
 {
     this->tex = std::make_unique<sf::RenderTexture>(size);
     sp = std::make_unique<sf::Sprite>(this->tex->getTexture());
 }
 
-void RenderManager::set_window(sf::RenderWindow* window)
-{
-    //set window, for scaling
-    this->window_ptr = window;
-}
+RenderManager::RenderManager(sf::RenderWindow* window) : window_ptr(window) {}
 
 sf::Vector2u RenderManager::get_render_texture_size(const std::string& name)
 {

@@ -41,7 +41,7 @@ class Application
     template <typename T, typename ... Args>
     void register_manager(Args&&... args)
     {
-        managers[std::type_index(typeid(T))] = std::make_shared<T>(std::forward<Args>(args)...);
+        managers[std::type_index(typeid(T))] = create<T>(std::forward<Args>(args)...);
     }
 
     template <typename T>

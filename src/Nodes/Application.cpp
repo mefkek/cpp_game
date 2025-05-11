@@ -19,9 +19,8 @@ Application::Application()
     std::weak_ptr<FPSCounter> fps = std::dynamic_pointer_cast<FPSCounter>(root);
     fps.lock()->set_position({15, 15});
 
-    register_manager<RenderManager>();
+    register_manager<RenderManager>(&window);
 
-    get_manager<RenderManager>()->set_window(&window);
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
     get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps.lock()->text));
