@@ -4,6 +4,7 @@ set(SOURCES
     RenderManager.cpp
     FPSCounter.cpp
     ActorManager.cpp
+        Actor.cpp
 )
 
 add_library(Nodes ${SOURCES})
