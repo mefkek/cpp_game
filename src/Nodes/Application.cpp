@@ -20,11 +20,20 @@ Application::Application()
     fps.lock()->set_position({15, 15});
 
     register_manager<RenderManager>();
+    register_manager<CollisionManager>();
 
     get_manager<RenderManager>()->set_window(&window);
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
     get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps.lock()->text));
+
+    //uncomment for testing
+    /*
+    get_manager<CollisionManager>()->add_layer("Test Layer", 1);
+    get_manager<CollisionManager>()->add_collider("Test Layer", insert rectangle collider);
+    get_manager<CollisionManager>()->add_collider("Test Layer", insert cirlce collider, preferably following mouse);
+    get_manager<CollisionManager>()->add_collider("Test Layer", insert cirlce collider);
+    /*
     //********************************************/
 }
 
@@ -76,6 +85,8 @@ void Application::run()
             Depending on SceneManager implementation that may be moved there
         */
 
+        s.push({get_manager<RenderManager>(), false});
+        s.push({get_manager<CollisionManager>(), false});
         s.push({root, false});
             
         while(!s.empty())
@@ -96,8 +107,6 @@ void Application::run()
                 s.pop();
             }
         }
-
-        get_manager<RenderManager>()->update(delta);
     }
 }
 
