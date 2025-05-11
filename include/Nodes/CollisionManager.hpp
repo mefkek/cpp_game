@@ -9,10 +9,12 @@
 
 class Collider {
 public:
+  sf::Vector2f position;
+  sf::Vector2f size;
+
   virtual ~Collider() = default;
 
   virtual bool collides_with(const Collider& other) const = 0;
-
   virtual void on_collision() = 0;
 };
 
@@ -40,6 +42,7 @@ protected:
   bool triggered = false;
 
 public:
+  bool collides_with(const Collider& other) const override;
   void on_collision() override;
   virtual void on_entered() = 0;
   virtual void on_exit() = 0;
@@ -54,6 +57,7 @@ private:
 public:
   Button(const std::string& label, const sf::Font& font, std::function<void()> cb);
 
+  bool collides_with(const Collider& other) const override;
   void on_collision() override;
   void set_text(const std::string& new_text);
   sf::Text& get_text();

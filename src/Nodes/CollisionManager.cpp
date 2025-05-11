@@ -1,6 +1,7 @@
 #include "Nodes/CollisionManager.hpp"
 #include <algorithm>
-
+#include <cmath>
+#include <memory>
 // === CollisionManager ===
 
 /// Perform collision detection between all colliders.
@@ -87,6 +88,14 @@ void TriggerArea::on_collision() {
         on_entered();  // Call user-defined behavior
     }
 }
+bool TriggerArea::collides_with(const Collider& other) const {
+    return !(position.x + size.x < other.position.x ||
+             position.x > other.position.x + other.size.x ||
+             position.y + size.y < other.position.y ||
+             position.y > other.position.y + other.size.y);
+}
+
+
 
 // === Button ===
 
@@ -99,6 +108,13 @@ Button::Button(const std::string& label, const sf::Font& font, std::function<voi
 void Button::on_collision() {
     if (callback) callback();
 }
+bool Button::collides_with(const Collider& other) const {
+    return !(position.x + size.x < other.position.x ||
+             position.x > other.position.x + other.size.x ||
+             position.y + size.y < other.position.y ||
+             position.y > other.position.y + other.size.y);
+}
+
 
 /// Change the button's text label.
 void Button::set_text(const std::string& new_text) {
@@ -108,4 +124,5 @@ void Button::set_text(const std::string& new_text) {
 /// Get a reference to the sf::Text object for rendering.
 sf::Text& Button::get_text() {
     return text;
-}
+};
+
