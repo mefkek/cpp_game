@@ -1,4 +1,12 @@
-add_library(Nodes Node.cpp Application.cpp ActorManager.cpp ${PROJECT_SOURCE_DIR}/include/Nodes.hpp)
+set(SOURCES
+    Node.cpp
+    Application.cpp
+    RenderManager.cpp
+    FPSCounter.cpp
+    ActorManager.cpp
+)
+
+add_library(Nodes ${SOURCES})
 
 target_include_directories(Nodes PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(Nodes PUBLIC SFML::Graphics)
