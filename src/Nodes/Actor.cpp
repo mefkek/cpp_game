@@ -1,4 +1,4 @@
-#include "Actor.hpp"
+#include "Nodes/Actor.hpp"
 
 Actor::Actor(ActorRaceEnum raceIn, std::unique_ptr<ActorBehaviour> behav)
     : race(raceIn), behaviour(std::move(behav))
