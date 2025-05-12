@@ -1,7 +1,7 @@
 #include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
 #include "Nodes/FPSCounter.hpp"
-#include "Nodes/EventManager.hpp"
+#include "Events.hpp"
 #include <stack>
 
 std::mutex Application::application_mutex;
@@ -29,32 +29,20 @@ void Application::initialize()
 
     get_manager<WindowEventManager>()->get_event<sf::Event::Closed>()->
         subscribe([&](const sf::Event::Closed& e){close();});
-    get_manager<WindowEventManager>()->get_event<sf::Event::Closed>()->
-        subscribe([&](const sf::Event::Closed& e){Logger::log(Logger::MessageType::Warning, "Application closed but yellow");});
     get_manager<WindowEventManager>()->get_event<sf::Event::Resized>()->
         subscribe([&](const sf::Event::Resized& e){get_manager<RenderManager>()->rescale();});
-    get_manager<WindowEventManager>()->get_event<sf::Event::Resized>()->
-        subscribe([](const sf::Event::Resized& e){Logger::log(Logger::MessageType::Info, "Window resized", e.size.x, " ", e.size.y);});
-    get_manager<WindowEventManager>()->get_event<sf::Event::FocusLost>()->
-        subscribe([](const sf::Event::FocusLost& e){Logger::log(Logger::MessageType::Warning, "Focus lost");});
-
-    //get_manager<WindowEventManager>()->register_sfml_event<sf::Event::Closed>([=](const sf::Event::Closed& e) {close();});
-    //get_manager<WindowEventManager>()->register_sfml_event<sf::Event::Resized>([=](const sf::Event::Resized& e) {get_manager<RenderManager>()->rescale();});
     //********************************************/
 }
 
 Application& Application::instance()
 {
+    //this is in case someone treis to create Application in two
+    //separate threads at once, which we will not be doing
+    //as threads are scary
     std::lock_guard<std::mutex> lock(application_mutex);
     static Application instance_;
     return instance_;
 }
-
-struct StackElement //helper for dfs tree search
-{
-    std::shared_ptr<Node> ptr;
-    bool visited;
-};
 
 void Application::run()
 {
@@ -73,8 +61,14 @@ void Application::run()
     while (window.isOpen())
     {
         float delta = clock.restart().asSeconds();
+
+        struct StackElement //helper for dfs tree search
+        {
+        std::shared_ptr<Node> ptr;
+        bool visited;
+        };
+
         std::stack<StackElement> s;   //pointer : visited pair
-        //managers should be update in the node that added them
 
         /*
             DFS for three travelsal, updates children first, then the parent

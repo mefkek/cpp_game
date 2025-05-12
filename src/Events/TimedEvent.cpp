@@ -1,4 +1,4 @@
-#include "Nodes/EventManager.hpp"
+#include "Events/TimedEvent.hpp"
 
 TimedEvent::TimedEvent(float time, int reps) : time_set(time), repetitions(reps) {}
 
@@ -18,6 +18,7 @@ void TimedEvent::update(float delta)
     if(repetitions == 0)
     {
         //events that sould happen infite or unspecified amount of times
-        //will have repetitions set to negative        this->kill();
+        //will have repetitions set to negative        
+        this->kill();
     }
 }

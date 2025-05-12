@@ -34,16 +34,12 @@ void ContainerNode<T>::remove_element(std::weak_ptr<T> el)
 {
     if(auto locked = el.lock())
     {
-        if(auto p = std::dynamic_pointer_cast<Node>(locked))
+        if(auto p = std::dynamic_pointer_cast<T>(locked))
         {
             remove_child(p);
             return;
         }
-        Logger::log(Logger::MessageType::Warning,
-                    "Tried removing an element of invalid type: ",
-                    demangle(std::type_index(typeid(*locked)).name()),
-                    " in container: ", shared_from_this());
     }
-    Logger::log(Logger::MessageType::Warning,
-                "Tried to remove an expired pointer in container: ", shared_from_this());
+    Logger::log(Logger::MessageType::Warning, "Tried to remove an expired pointer in container: ",
+                    shared_from_this());
 }
