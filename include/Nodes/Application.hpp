@@ -26,7 +26,12 @@ class Application
     static std::mutex application_mutex;
 
     Application() = default;
-    void initialize();
+
+    /*
+        Acts as Application class contructor without the dangers of
+        referencing an incomplete instance or any thread realated stuff
+    */
+    void initialize(); 
 
     public:
     Application(const Application&) = delete;   //delete so it can't be copied
