@@ -25,7 +25,13 @@ class Application
     std::map<std::type_index, std::shared_ptr<Node>> managers;
     static std::mutex application_mutex;
 
-    Application();
+    Application() = default;
+
+    /*
+        Acts as Application class contructor without the dangers of
+        referencing an incomplete instance or any thread realated stuff
+    */
+    void initialize(); 
 
     public:
     Application(const Application&) = delete;   //delete so it can't be copied
@@ -41,7 +47,7 @@ class Application
     template <typename T, typename ... Args>
     void register_manager(Args&&... args)
     {
-        managers[std::type_index(typeid(T))] = std::make_shared<T>(std::forward<Args>(args)...);
+        managers[std::type_index(typeid(T))] = create<T>(std::forward<Args>(args)...);
     }
 
     template <typename T>
