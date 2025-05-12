@@ -1,6 +1,7 @@
 #include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
 #include "Nodes/FPSCounter.hpp"
+#include "Events.hpp"
 #include <stack>
 
 std::mutex Application::application_mutex;
@@ -15,36 +16,40 @@ void Application::initialize()
 
     //This block can stay for now, but this should be handled properly later on
     //(program argumetns -d as an separete debug node maybe?)
-    root = std::make_shared<FPSCounter>();
-    std::weak_ptr<FPSCounter> fps = std::dynamic_pointer_cast<FPSCounter>(root);
-    fps.lock()->set_position({15, 15});
+    std::shared_ptr<FPSCounter> fps = std::make_shared<FPSCounter>();
+    fps->set_position({15, 15});
+    root_level.push_back(fps);
 
-    register_manager<RenderManager>();
+    register_manager<RenderManager>();  //maybe should be added first
+    register_manager<WindowEventManager>();     //just an empty node, at least for now
 
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
-    get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps.lock()->text));
+    get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps->text));
+
+    get_manager<WindowEventManager>()->get_event<sf::Event::Closed>()->
+        subscribe([&](const sf::Event::Closed& e){close();});
+    get_manager<WindowEventManager>()->get_event<sf::Event::Resized>()->
+        subscribe([&](const sf::Event::Resized& e){get_manager<RenderManager>()->rescale();});
     //********************************************/
 }
 
 Application& Application::instance()
 {
+    //this is in case someone treis to create Application in two
+    //separate threads at once, which we will not be doing
+    //as threads are scary
     std::lock_guard<std::mutex> lock(application_mutex);
     static Application instance_;
     return instance_;
 }
-
-struct StackElement //helper for dfs tree search
-{
-    std::shared_ptr<Node> ptr;
-    bool visited;
-};
 
 void Application::run()
 {
     /*
         What should happen here:
          - no setting up anything, just the loop (leave setup in constructor)
+            {This might not be a good idea after all, maybe some one time setup function?}
          - start whiel loop
          - process events
          - update each tree node (bfs alghorithm)
@@ -55,29 +60,25 @@ void Application::run()
 
     while (window.isOpen())
     {
-        while (const std::optional event = window.pollEvent())
-        {
-            if(event->is<sf::Event::Closed>())
-            {
-                this->close();
-            }
-            else if(auto e = event->getIf<sf::Event::Resized>())
-            {
-                get_manager<RenderManager>()->rescale();   //for proper rendering
-            }
-        }
-
         float delta = clock.restart().asSeconds();
-        std::stack<StackElement> s;   //pointer : visited pair
 
-        //managers should be update in the node that added them
+        struct StackElement //helper for dfs tree search
+        {
+        std::shared_ptr<Node> ptr;
+        bool visited;
+        };
+
+        std::stack<StackElement> s;   //pointer : visited pair
 
         /*
             DFS for three travelsal, updates children first, then the parent
             Depending on SceneManager implementation that may be moved there
         */
 
-        s.push({root, false});
+        for(auto& node : root_level)
+        {
+            s.push({node, false});
+        }
             
         while(!s.empty())
         {
@@ -97,13 +98,19 @@ void Application::run()
                 s.pop();
             }
         }
-
-        get_manager<RenderManager>()->update(delta);
     }
+}
+
+const std::vector<std::shared_ptr<Node>>& Application::get_root_level()
+{
+    return root_level;
 }
 
 void Application::close()
 {
+    #ifdef DEBUG
+    Logger::log(Logger::MessageType::Info, print_tree());
+    #endif
     //acts pretty much like a destructor, so any autosave on quit goes here");
     window.close();
 }

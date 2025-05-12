@@ -1,10 +1,11 @@
 #include "Utility/Logger.hpp"
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <chrono>
 #include <ctime>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #endif
 
@@ -54,7 +55,9 @@ void Logger::write_to_console(Logger::MessageType type, std::stringstream& log_s
     std::getline(log_ss, dump, '[');
     time_str = dump;
     std::cout << dump;
-    std::getline(log_ss, dump, ']');
+    std::getline(log_ss, dump);
+
+    dump = "[" + dump;
 
     switch (type)
     {
@@ -76,9 +79,14 @@ void Logger::write_to_console(Logger::MessageType type, std::stringstream& log_s
             break;
     }
     set_console_output_color(ConsoleColor::white);
+    std::cout << '\n';
 
-    std::getline(log_ss, dump);
-    std::cout << dump << std::endl;
+    while (std::getline(log_ss, dump))
+    {
+        std::cout << dump << '\n';
+    }
+
+    std::cout << std::flush;
 }
 
 void Logger::write_to_file(const std::string& path, std::stringstream& log_ss, const std::string& time_str)
@@ -95,7 +103,7 @@ void Logger::write_to_file(const std::string& path, std::stringstream& log_ss, c
     }
 
     can_open = true;    //in case program suddenly regains th ability to open
-    file << log_ss.str() << '\n';
+    file << log_ss.str();
 }
 
 std::string Logger::prep_message(std::string msg)

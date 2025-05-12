@@ -1,7 +1,7 @@
 #pragma once
 #include "Utility/Exceptions.hpp"
 #include "Utility/Various.hpp"
-#include "Nodes.hpp"
+#include "Node.hpp"
 #include <SFML/Graphics.hpp>
 #include <typeindex>
 #include <iostream>
@@ -21,7 +21,7 @@ class Application
     private:
     sf::RenderWindow window;
     sf::Clock clock;
-    std::shared_ptr<Node> root; //temporary (?)
+    std::vector<std::shared_ptr<Node>> root_level; //temporary (?)
     std::map<std::type_index, std::shared_ptr<Node>> managers;
     static std::mutex application_mutex;
 
@@ -47,7 +47,8 @@ class Application
     template <typename T, typename ... Args>
     void register_manager(Args&&... args)
     {
-        managers[std::type_index(typeid(T))] = create<T>(std::forward<Args>(args)...);
+        root_level.emplace_back(create<T>(std::forward<Args>(args)...));
+        managers[std::type_index(typeid(T))] = root_level.back();
     }
 
     template <typename T>
@@ -66,6 +67,8 @@ class Application
 
         return nullptr;
     }
+
+    const std::vector<std::shared_ptr<Node>>& get_root_level();
 
     void close();
 };
