@@ -3,6 +3,7 @@ set(SOURCES
     Application.cpp
     RenderManager.cpp
     FPSCounter.cpp
+    Colliders.cpp
     CollisionManager.cpp
 )
 

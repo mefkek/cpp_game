@@ -1,5 +1,6 @@
 #include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
+#include "Nodes/CollisionManager.hpp"
 #include "Nodes/FPSCounter.hpp"
 #include "Events.hpp"
 #include <stack>
