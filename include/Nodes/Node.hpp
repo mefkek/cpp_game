@@ -18,9 +18,9 @@ class Node : public std::enable_shared_from_this<Node>
     friend std::shared_ptr<T> create(Args&&... args);
 
     Node() = default;   //should only be used when adding root (friend Application?)
-    virtual void initialize() {}
 
     public:
+    virtual void initialize() {}    //acts as a contructor without the danger of bad_weak_ptr
 
     virtual void update(float) = 0;
 
@@ -38,6 +38,10 @@ class Node : public std::enable_shared_from_this<Node>
 
 std::ostream& operator<<(std::ostream& os, const std::shared_ptr<Node>& n);
 
+/*
+    this should be used any time a node is added, but
+    as a contructor needs to be public it can't be enforced
+*/
 template<typename T, typename... Args>
 std::shared_ptr<T> create(Args&&... args);
 
