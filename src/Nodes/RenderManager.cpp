@@ -12,17 +12,10 @@
     related construction should be included. For now its good.
 */
 
-
 RenderLayer::RenderLayer(sf::Vector2u size)
 {
     this->tex = std::make_unique<sf::RenderTexture>(size);
     sp = std::make_unique<sf::Sprite>(this->tex->getTexture());
-}
-
-void RenderManager::set_window(sf::RenderWindow* window)
-{
-    //set window, for scaling
-    this->window_ptr = window;
 }
 
 sf::Vector2u RenderManager::get_render_texture_size(const std::string& name)
@@ -46,12 +39,6 @@ sf::Vector2u RenderManager::get_render_texture_size(const std::string& name)
 
 void RenderManager::add_layer(const std::string& name, char priority, sf::Vector2u size)
 {
-    //add layers at the correct priority, if layer with the same name exits then delete system32
-    if(!window_ptr)
-    {
-        throw NoWindowGivenException();
-    }
-
     if(layers.count(priority) || string_ref.count(name))
     {
         throw DuplicateRenderLayerException(name);
@@ -61,8 +48,10 @@ void RenderManager::add_layer(const std::string& name, char priority, sf::Vector
     layers[priority] = RenderLayer(size);
     layers[priority].sp->setScale(
         {
-            window_ptr->getSize().x /static_cast<float>(layers[priority].tex->getTexture().getSize().x),
-            window_ptr->getSize().y / static_cast<float>(layers[priority].tex->getTexture().getSize().y)
+            Application::instance().get_window().getSize().x 
+                /static_cast<float>(layers[priority].tex->getTexture().getSize().x),
+            Application::instance().get_window().getSize().y / 
+                static_cast<float>(layers[priority].tex->getTexture().getSize().y)
         }
     );
 }
@@ -140,18 +129,13 @@ void RenderManager::move_view(const std::string& layer, sf::Vector2f offset)
 
 void RenderManager::rescale()
 {
-    if(!window_ptr)
-    {
-        throw NoWindowGivenException();
-    }
-
     for(auto& [priority, layer] : layers)
     {
         layer.sp->setScale(
             {
-                window_ptr->getSize().x /
+                Application::instance().get_window().getSize().x /
                 static_cast<float>(layer.tex->getTexture().getSize().x),
-                window_ptr->getSize().y /
+                Application::instance().get_window().getSize().y /
                 static_cast<float>(layer.tex->getTexture().getSize().y)
             }
         );
@@ -160,7 +144,7 @@ void RenderManager::rescale()
 
 void RenderManager::update(float delta)
 {
-    window_ptr->clear();
+    Application::instance().get_window().clear();
 
     //remove nullptr and draw stuff to render textures
     for(auto& [priority, layer] : layers)
@@ -181,8 +165,8 @@ void RenderManager::update(float delta)
 
         layer.tex->display();
 
-        window_ptr->draw(*(layer.sp));
+        Application::instance().get_window().draw(*(layer.sp));
     }
 
-    window_ptr->display();
+    Application::instance().get_window().display();
 }
