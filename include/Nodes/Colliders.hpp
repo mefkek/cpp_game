@@ -87,7 +87,7 @@ class TriggerArea : public Node
     TriggerArea(sf::Vector2f position, sf::Vector2f size);
     TriggerArea(sf::Vector2f position, float radius);
     void initialize() override;
-    void update(float delta) override {};
+    void update(float delta) override;
     virtual void on_entered(const std::weak_ptr<Collider> other) = 0;
     virtual void on_exit(const std::weak_ptr<Collider> other) = 0;
     std::weak_ptr<CustomEvent<const std::weak_ptr<Collider>>> get_on_entered_event();

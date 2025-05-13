@@ -297,6 +297,11 @@ void TriggerArea::initialize()
                                                         });
 }
 
+void TriggerArea::update(float delta)
+{
+    collider.lock()->position = this->position;
+}
+
 std::weak_ptr<CustomEvent<const std::weak_ptr<Collider>>> TriggerArea::get_on_entered_event()
 {
     return on_entered_ev;
