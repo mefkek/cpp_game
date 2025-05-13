@@ -24,7 +24,8 @@ class RenderManager : public Node
     std::map<std::string, unsigned char> string_ref;
 
     public:
-    sf::Vector2u get_render_texture_size(const std::string& name);
+    sf::RenderTexture& get_render_texture(const std::string& name);
+    sf::Sprite& get_render_sprite(const std::string& name);
 
     void add_layer(const std::string& name, char priority = 0, sf::Vector2u size = {640, 360});
 

@@ -29,6 +29,12 @@ void Application::initialize()
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
     get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps->text));
 
+    get_manager<CollisionManager>()->add_layer("Debug_coll", 0);
+
+    //for testing collisions
+    root_level.push_back(create<DebugRect>());
+    root_level.push_back(create<DebugCirc>());
+
     get_manager<WindowEventManager>()->get_event<sf::Event::Closed>()->
         subscribe([&](const sf::Event::Closed& e){close();});
     get_manager<WindowEventManager>()->get_event<sf::Event::Resized>()->

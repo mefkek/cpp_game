@@ -89,40 +89,188 @@ TriggerArea::TriggerArea(sf::Vector2f position, sf::Vector2f size) : position(po
 TriggerArea::TriggerArea(sf::Vector2f position, float radius)
                          : position(position), size({radius*2, radius*2}), doCircle(true) {}
 
-TriggerArea::TriggerAreaColliderCircle::TriggerAreaColliderCircle(sf::Vector2f position, float size)
+TriggerAreaColliderCircle::TriggerAreaColliderCircle(sf::Vector2f position, float size)
                                                                 : CircleCollider(position, size) {}
 
-void TriggerArea::TriggerAreaColliderCircle::on_colision(const std::weak_ptr<Collider> other)
+void TriggerAreaColliderCircle::on_collision(const std::weak_ptr<Collider> other)
 {
-    if(auto p_ptr = parent.lock())
-    {
-        if(auto trig_ptr = std::dynamic_pointer_cast<TriggerArea>(p_ptr))
-        {
-            trig_ptr->triggered = true;
-            trig_ptr->last_collided_with = other;
-            return;
-        }
-    }
-
-    Logger::log(Logger::MessageType::Warning, shared_from_this(), " invalid");
+    Logger::log(Logger::MessageType::Info, shared_from_this(), " collision detected");
+    entered_frame.push_back(other);
 }
 
-TriggerArea::TriggerAreaColliderRect::TriggerAreaColliderRect(sf::Vector2f position, sf::Vector2f size)
-                                                                : RectangleCollider(position, size) {}
-
-void TriggerArea::TriggerAreaColliderRect::on_colision(const std::weak_ptr<Collider> other)
+void TriggerAreaColliderCircle::update(float delta)
 {
-    if(auto p_ptr = parent.lock())
+    std::vector<std::shared_ptr<Collider>> previous;
+    std::vector<std::shared_ptr<Collider>> current;
+
+    std::vector<std::shared_ptr<Collider>> new_colliders;
+    std::vector<std::shared_ptr<Collider>> left;
+
+    //filtering expired pointers
+    for(auto n : entered_frame)
     {
-        if(auto trig_ptr = std::dynamic_pointer_cast<TriggerArea>(p_ptr))
+        if(auto p = n.lock())
         {
-            trig_ptr->triggered = true;
-            trig_ptr->last_collided_with = other;
-            return;
+            current.push_back(p);
         }
     }
-    
-    Logger::log(Logger::MessageType::Warning, shared_from_this(), " invalid");
+
+    for(auto old : entered)
+    {
+        if(auto p = old.lock())
+        {
+            previous.push_back(p);
+        }
+    }
+
+    //finding new entries and colliders that left the area
+    for (auto& ptr : current)
+    {
+        auto it = std::find_if(previous.begin(), previous.end(),
+                               [&ptr](const std::shared_ptr<Collider>& old) {
+                                   return old == ptr;
+                               });
+        if (it == previous.end())
+        {
+            new_colliders.push_back(ptr);
+        }
+    }
+
+    for (auto& ptr : previous)
+    {
+        auto it = std::find_if(current.begin(), current.end(),
+                               [&ptr](const std::shared_ptr<Collider>& now) {
+                                   return now == ptr;
+                               });
+        if (it == current.end())
+        {
+            left.push_back(ptr);
+        }
+    }
+
+    //rising events
+    if (auto p = std::dynamic_pointer_cast<TriggerArea>(parent.lock()))
+    {
+        if (auto entered_ev = p->get_on_entered_event().lock())
+        {
+            for (auto& ent : new_colliders)
+            {
+                entered_ev->rise(ent);
+            }
+        }
+        if (auto exited_ev = p->get_on_exit_event().lock())
+        {
+            for (auto& ex : left)
+            {
+                exited_ev->rise(ex);
+            }
+        }
+    }
+    else
+    {
+        Logger::log(Logger::MessageType::Warning, shared_from_this(), "Invalid parent");
+    }
+
+    //cleanup
+    entered.clear();
+    for (auto& e : current)
+    {
+        entered.push_back(e);
+    }
+
+    entered_frame.clear();
+}
+
+TriggerAreaColliderRect::TriggerAreaColliderRect(sf::Vector2f position, sf::Vector2f size)
+                                                                : RectangleCollider(position, size) {}
+
+void TriggerAreaColliderRect::on_collision(const std::weak_ptr<Collider> other)
+{
+    Logger::log(Logger::MessageType::Info, shared_from_this(), " collision detected");
+    entered_frame.push_back(other);
+}
+
+void TriggerAreaColliderRect::update(float delta)
+{
+    std::vector<std::shared_ptr<Collider>> previous;
+    std::vector<std::shared_ptr<Collider>> current;
+
+    std::vector<std::shared_ptr<Collider>> new_colliders;
+    std::vector<std::shared_ptr<Collider>> left;
+
+    //filtering expired pointers
+    for(auto n : entered_frame)
+    {
+        if(auto p = n.lock())
+        {
+            current.push_back(p);
+        }
+    }
+
+    for(auto old : entered)
+    {
+        if(auto p = old.lock())
+        {
+            previous.push_back(p);
+        }
+    }
+
+    //finding new entries and colliders that left the area
+    for (auto& ptr : current)
+    {
+        auto it = std::find_if(previous.begin(), previous.end(),
+                               [&ptr](const std::shared_ptr<Collider>& old) {
+                                   return old == ptr;
+                               });
+        if (it == previous.end())
+        {
+            new_colliders.push_back(ptr);
+        }
+    }
+
+    for (auto& ptr : previous)
+    {
+        auto it = std::find_if(current.begin(), current.end(),
+                               [&ptr](const std::shared_ptr<Collider>& now) {
+                                   return now == ptr;
+                               });
+        if (it == current.end())
+        {
+            left.push_back(ptr);
+        }
+    }
+
+    //rising events
+    if (auto p = std::dynamic_pointer_cast<TriggerArea>(parent.lock()))
+    {
+        if (auto entered_ev = p->get_on_entered_event().lock())
+        {
+            for (auto& ent : new_colliders)
+            {
+                entered_ev->rise(ent);
+            }
+        }
+        if (auto exited_ev = p->get_on_exit_event().lock())
+        {
+            for (auto& ex : left)
+            {
+                exited_ev->rise(ex);
+            }
+        }
+    }
+    else
+    {
+        Logger::log(Logger::MessageType::Warning, shared_from_this(), "Invalid parent");
+    }
+
+    //cleanup
+    entered.clear();
+    for (auto& e : current)
+    {
+        entered.push_back(e);
+    }
+
+    entered_frame.clear();
 }
 
 void TriggerArea::initialize()
@@ -149,18 +297,11 @@ void TriggerArea::initialize()
                                                         });
 }
 
-void TriggerArea::update(float delta)
+std::weak_ptr<CustomEvent<const std::weak_ptr<Collider>>> TriggerArea::get_on_entered_event()
 {
-    if(triggered != didCollide)
-    {
-        //change in colision status
-        if(triggered == false && didCollide == true)
-        {
-            //collision exit
-            on_exit_ev.lock()->rise(last_collided_with);
-        }
-        on_entered_ev.lock()->rise(last_collided_with);
-    }
-
-    didCollide = triggered;
+    return on_entered_ev;
+}
+std::weak_ptr<CustomEvent<const std::weak_ptr<Collider>>> TriggerArea::get_on_exit_event()
+{
+    return on_exit_ev;
 }

@@ -20,17 +20,18 @@ void CollisionManager::collide()
 
         for (size_t i = 0; i < colliders.size(); ++i)
         {
-            auto a = colliders[i].lock();
-            if (!a) continue;
-
-            for (size_t j = i + 1; j < colliders.size(); ++j)
+            if(auto a = colliders[i].lock())
             {
-                auto b = colliders[j].lock();
-                if (!b) continue;
-
-                if (a->collides_with(b)) {
-                    a->on_collision(b);
-                    b->on_collision(a);
+                for (size_t j = i + 1; j < colliders.size(); ++j)
+                {
+                    if(auto b = colliders[j].lock())
+                    {                    
+                        if (a->collides_with(b)) 
+                        {
+                            a->on_collision(b);
+                            b->on_collision(a);
+                        }
+                    }
                 }
             }
         }
@@ -45,6 +46,20 @@ void CollisionManager::add_collider(const std::string& layername, std::weak_ptr<
         if (layer.name == layername) {
             layer.colliders.push_back(collider);
             return;
+        }
+    }
+}
+
+void CollisionManager::add_collider(const std::string& layername, std::weak_ptr<TriggerArea> area)
+{
+    if(auto area_ptr = area.lock())
+    {
+        for (auto& [id, layer] : collision_layers)
+        {
+            if (layer.name == layername){
+                layer.colliders.push_back(area_ptr->collider);
+                return;
+            }
         }
     }
 }
@@ -122,3 +137,81 @@ sf::Text& Button::get_text()
 };
 */
 
+//debug
+void DebugRect::initialize()
+{
+    sf::Vector2f pos;
+    pos.x = Application::instance().get_manager<RenderManager>()->
+            get_render_texture("Debug_ui").getSize().x / 2.f;
+    pos.y = Application::instance().get_manager<RenderManager>()->
+            get_render_texture("Debug_ui").getSize().y / 2.f;
+    shape = std::make_shared<sf::RectangleShape>(sf::Vector2f(250.f, 250.f));
+    shape->setOrigin({250.f / 2, 250.f / 2});
+    shape->setPosition(pos);
+    trigger = add_child<DebugTrigger>(pos, sf::Vector2f(250.f, 250.f)).lock();
+    Application::instance().get_manager<RenderManager>()->add_drawable("Debug_ui", shape);
+    Application::instance().get_manager<CollisionManager>()->add_collider("Debug_coll", trigger);
+}
+
+void DebugCirc::update(float delta)
+{
+    //map position to layer coordinates, should propably be done by layer manager
+    //resize doesn't work
+    sf::Vector2i mouse_pos = sf::Mouse::getPosition(Application::instance().get_window());
+    sf::Vector2f mouse_translated = Application::instance().get_window().mapPixelToCoords(mouse_pos);
+    sf::Vector2f scale = Application::instance().get_manager<RenderManager>()->
+                         get_render_sprite("Debug_ui").getScale();
+    mouse_translated.x /= scale.x;
+    mouse_translated.y /= scale.y;
+    shape->setPosition(mouse_translated);
+    trigger->position = shape->getPosition();
+}
+
+void DebugCirc::initialize()
+{
+    sf::Vector2f pos;
+    pos.x = Application::instance().get_window().getSize().x / 2;
+    pos.y = Application::instance().get_window().getSize().y / 2;
+    shape = std::make_shared<sf::CircleShape>(50.f);
+    shape->setOrigin({25, 25});
+    shape->setPosition(pos);
+    trigger = add_child<DebugTriggerCirc>(sf::Vector2f(50.f, 50.f), 50.f).lock();
+    Application::instance().get_manager<RenderManager>()->add_drawable("Debug_ui", shape);
+    Application::instance().get_manager<CollisionManager>()->add_collider("Debug_coll", trigger);
+}
+
+void DebugTrigger::on_entered(const std::weak_ptr<Collider> other)
+{
+    Logger::log(Logger::MessageType::Info, "DebugRect: ", shared_from_this(), " entered");
+    if(auto p = std::dynamic_pointer_cast<DebugRect>(parent.lock()))
+    {
+        p->shape->setFillColor(sf::Color::Red);
+    }
+}
+
+void DebugTrigger::on_exit(const std::weak_ptr<Collider> other)
+{
+    Logger::log(Logger::MessageType::Info, "DebugRect: ", shared_from_this(), " exited");
+    if(auto p = std::dynamic_pointer_cast<DebugRect>(parent.lock()))
+    {
+        p->shape->setFillColor(sf::Color::Blue);
+    }
+}
+
+void DebugTriggerCirc::on_entered(const std::weak_ptr<Collider> other)
+{
+    Logger::log(Logger::MessageType::Info, "MouseDebugRect: ", shared_from_this(), " entered");
+    if(auto p = std::dynamic_pointer_cast<DebugCirc>(parent.lock()))
+    {
+        p->shape->setFillColor(sf::Color::Red);
+    }
+}
+
+void DebugTriggerCirc::on_exit(const std::weak_ptr<Collider> other)
+    {
+    Logger::log(Logger::MessageType::Info, "MouseDebugRect: ", shared_from_this(), " exited");
+    if(auto p = std::dynamic_pointer_cast<DebugCirc>(parent.lock()))
+    {
+        p->shape->setFillColor(sf::Color::Blue);
+    }
+}

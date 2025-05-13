@@ -16,6 +16,7 @@ class Collider : public Node
     Collider(sf::Vector2f position, sf::Vector2f size);
     virtual ~Collider() = default;
 
+    void update(float delta) override {}
     void initialize() override;
 
 
@@ -41,24 +42,34 @@ class CircleCollider : public Collider
     bool collides_with(const std::shared_ptr<Collider> other) const override;
 };
 
+class TriggerAreaColliderCircle : public CircleCollider
+    {
+        private:
+        std::vector<std::weak_ptr<Collider>> entered;
+        std::vector<std::weak_ptr<Collider>> entered_frame;
+        public:
+        TriggerAreaColliderCircle(sf::Vector2f position, float size);
+        void update(float delta) override;
+        void on_collision(const std::weak_ptr<Collider> other) override;
+    };
+    class TriggerAreaColliderRect : public RectangleCollider
+    {
+        private:
+        std::vector<std::weak_ptr<Collider>> entered;
+        std::vector<std::weak_ptr<Collider>> entered_frame;
+        public:
+        TriggerAreaColliderRect(sf::Vector2f position, sf::Vector2f size);
+        void update(float delta) override;
+        void on_collision(const std::weak_ptr<Collider> other) override;
+    };
+
 class TriggerArea : public Node 
 {
     /*
         Specialized trigger area colliders
     */
     private:
-    class TriggerAreaColliderCircle : public CircleCollider
-    {
-        public:
-        TriggerAreaColliderCircle(sf::Vector2f position, float size);
-        void on_colision(const std::weak_ptr<Collider> other);
-    };
-    class TriggerAreaColliderRect : public RectangleCollider
-    {
-        public:
-        TriggerAreaColliderRect(sf::Vector2f position, sf::Vector2f size);
-        void on_colision(const std::weak_ptr<Collider> other);
-    };
+    friend class CollisionManager;
 
     protected:
     bool didCollide = false;
@@ -76,9 +87,9 @@ class TriggerArea : public Node
     TriggerArea(sf::Vector2f position, sf::Vector2f size);
     TriggerArea(sf::Vector2f position, float radius);
     void initialize() override;
-    void update(float delta) override;
-    virtual void on_entered(std::weak_ptr<Collider> other) = 0;
-    virtual void on_exit(std::weak_ptr<Collider> other) = 0;
+    void update(float delta) override {};
+    virtual void on_entered(const std::weak_ptr<Collider> other) = 0;
+    virtual void on_exit(const std::weak_ptr<Collider> other) = 0;
     std::weak_ptr<CustomEvent<const std::weak_ptr<Collider>>> get_on_entered_event();
     std::weak_ptr<CustomEvent<const std::weak_ptr<Collider>>> get_on_exit_event();
     virtual ~TriggerArea() = default;
