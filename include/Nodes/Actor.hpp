@@ -5,10 +5,11 @@
 #include <unordered_map>
 #include <string>
 #include <memory>
+#include <stdexcept>    // dodane dla std::out_of_range
 
 class Actor : public Node {
 public:
-    Actor(ActorRaceEnum raceIn, std::unique_ptr<ActorBehaviour> behav);
+    Actor(ActorRaceEnum raceIn, std::shared_ptr<ActorBehaviour> behav);
     virtual ~Actor() override = default;
 
     // co klatkę
@@ -27,10 +28,10 @@ public:
     }
 
 protected:
-    // hook wywoływany za każdym razem, gdy stat zmieni wartość
-    virtual void onStatChange(const std::string& name, int newValue) = 0;
 
+    virtual void onStatChange(const std::string& name, int newValue){};
+private:
     std::unordered_map<std::string,int>    stats;
     ActorRaceEnum                         race;
-    std::unique_ptr<ActorBehaviour>       behaviour;
+    std::shared_ptr<ActorBehaviour>       behaviour;
 };

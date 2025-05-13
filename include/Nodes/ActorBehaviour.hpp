@@ -6,5 +6,5 @@ class ActorBehaviour {
 public:
     virtual ~ActorBehaviour() = default;
 
-    virtual void update(Actor& actor, float delta) = 0;
+    virtual void behave(Actor& actor) = 0;
 };

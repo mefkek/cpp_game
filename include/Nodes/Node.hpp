@@ -22,17 +22,19 @@ class Node : public std::enable_shared_from_this<Node>
     std::vector<std::shared_ptr<Node>>& get_children();
 
     template <typename T, typename ... Args>
-    void add_child(Args&&... args)
+    //void add_child(Args&&... args)
+    std::shared_ptr<T> add_child(Args&&... args)
     {
         std::shared_ptr<T> new_child = std::make_shared<T>(std::forward<Args>(args)...);
         if(auto p = std::dynamic_pointer_cast<Node>(new_child))     //if child is not a node, ignore
         {
             p->parent = shared_from_this();
             children.push_back(new_child);
-            return;
+            return new_child;
         }
 
         Logger::log(Logger::MessageType::Warning, "Node ", this->shared_from_this(), " tried to add invalid child type.");
+        return nullptr;
     }
 
     void remove_child(std::shared_ptr<Node>);
