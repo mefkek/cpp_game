@@ -20,6 +20,7 @@ void Application::initialize()
     std::shared_ptr<FPSCounter> fps = std::make_shared<FPSCounter>();
     fps->set_position({15, 15});
     root_level.push_back(fps);
+    static sf::Vector2<std::int64_t> chunkcoords = {0, 0};  //debug only
 
     register_manager<RenderManager>();  //maybe should be added first
     register_manager<WindowEventManager>();     //just an empty node, at least for now
@@ -38,7 +39,36 @@ void Application::initialize()
         {
             if(e.scancode == sf::Keyboard::Scancode::Enter)
             {
-                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->get_chunk({0, 0}));
+                Logger::log(Logger::MessageType::Info, "Chunk: ", chunkcoords.x, " ", chunkcoords.y);
+                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->get_chunk(chunkcoords));
+            }
+            else if(e.scancode == sf::Keyboard::Scancode::Up)
+            {
+                ++chunkcoords.y;
+                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->get_chunk(chunkcoords));
+                Logger::log(Logger::MessageType::Info, "Chunk: ", chunkcoords.x, " ", chunkcoords.y);
+
+            }
+            else if(e.scancode == sf::Keyboard::Scancode::Down)
+            {
+                --chunkcoords.y;
+                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->get_chunk(chunkcoords));
+                Logger::log(Logger::MessageType::Info, "Chunk: ", chunkcoords.x, " ", chunkcoords.y);
+
+            }
+            else if(e.scancode == sf::Keyboard::Scancode::Right)
+            {
+                ++chunkcoords.x;
+                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->get_chunk(chunkcoords));
+                Logger::log(Logger::MessageType::Info, "Chunk: ", chunkcoords.x, " ", chunkcoords.y);
+
+            }
+            else if(e.scancode == sf::Keyboard::Scancode::Left)
+            {
+                --chunkcoords.x;
+                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->get_chunk(chunkcoords));
+                Logger::log(Logger::MessageType::Info, "Chunk: ", chunkcoords.x, " ", chunkcoords.y);
+
             }
         });
     //********************************************/

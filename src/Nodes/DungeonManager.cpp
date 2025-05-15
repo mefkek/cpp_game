@@ -3,6 +3,7 @@
 #include "Nodes/RenderManager.hpp"
 #include <algorithm>
 #include <random>
+#include <tuple>
 #include <sstream>
 #include <string>
 #include <cmath>
@@ -28,182 +29,138 @@ std::shared_ptr<DungeonManager::Chunk> DungeonManager::get_chunk(sf::Vector2<std
 
     std::vector<sf::Vector2i> dirs = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
 
-    std::array<std::vector<std::shared_ptr<Room>>, 4> room_lines;
-
     std::shared_ptr<Chunk> new_chunk = std::make_shared<Chunk>();
 
-    //create exits
-    std::stringstream exit_hash;
+    std::vector<std::tuple<std::shared_ptr<Room>, int>> room_map;   //room | parent
+    std::array<std::shared_ptr<Room>, 4> top_rooms;
+
     for(int i = 0; i < 4; ++i)
     {
-        std::int64_t n_x = position.x + dirs[i].x;
-        std::int64_t n_y = position.y + dirs[i].y;
-
-        std::int64_t chunk_half_size = chunk_size / 2;
-        if(n_x > -chunk_half_size && n_x < chunk_half_size && n_y > -chunk_half_size && n_y < chunk_half_size)
+        //boundary check
+        const sf::Vector2i& dir = dirs[i];
+        sf::Vector2<std::int64_t> adjacent = {position.x + dir.x, position.y + dir.y};
+        if(std::abs(adjacent.x) >= (chunk_size / 2) || std::abs(adjacent.y) >= (chunk_size / 2))
         {
-            if(position.x <= n_x)
-            {
-                exit_hash << "Chunk1_" << position.x << "_" << position.y
-                          << "Chunk2_" << n_x << "_" << n_y
-                          << "_Seed_" << dungeon_seed;
-            }
-            else
-            {
-                exit_hash << "Chunk1_" << n_x << "_" << n_y
-                          << "Chunk2_" << position.x << "_" << position.y
-                          << "_Seed_" << dungeon_seed;
-            }
+            new_chunk->exits[i] = nullptr;
+            top_rooms[i] = nullptr;
+            continue;
+        }
 
-            std::size_t exit_seed = std::hash<std::string>{}(exit_hash.str());
-            std::mt19937 gen(exit_seed);
-            std::uniform_int_distribution<std::uint32_t> dist(1, chunk_size - 2);
-            sf::Vector2<std::uint32_t> room_pos;
-            if(std::abs(dirs[i].x) > 0)
-            {
-                room_pos.x = chunk_size - (chunk_size * std::max(0, -dirs[i].x));
-                room_pos.y = dist(gen);
-            }
-            else
-            {
-                room_pos.y = chunk_size - (chunk_size * std::max(0, -dirs[i].y));
-                room_pos.x = dist(gen);
-            }
-
-            new_chunk->exits[i] = std::make_shared<DungeonManager::Room>(room_pos,
-                                                                        std::vector<sf::Vector2i>({dirs[i], -dirs[i]}));
-            new_chunk->rooms.push_back(new_chunk->exits[i]);
-            room_lines[i].push_back(new_chunk->exits[i]);
+        //generate seed for edge of two chunks
+        std::stringstream exit_hash;
+        exit_hash << "Chunk1_";
+        if(position.x < adjacent.x)
+        {
+            exit_hash << position.x << '_' << position.y << adjacent.x << '_' << adjacent.y;
         }
         else
         {
-            new_chunk->exits[i] = nullptr; //invalid chunk
+            exit_hash << adjacent.x << '_' << adjacent.y <<  position.x << '_' << position.y;
         }
-    }    
+        exit_hash << "_Seed_" << dungeon_seed;
 
-    std::stringstream to_hash;
-    to_hash << "Chunk_" << position.x << "_" << position.y << "_Seed_" << dungeon_seed;
-    std::size_t chunk_seed = std::hash<std::string>{}(to_hash.str());
-    std::mt19937 gen(chunk_seed);
-    std::uniform_int_distribution<std::uint8_t> direction_selector(0, 3);
-    std::uniform_real_distribution<float> chance_gen(0.f, 1.f);
+        std::size_t exit_seed = std::hash<std::string>{}(exit_hash.str());
+        std::mt19937 rd_dev(exit_seed);
+        std::uniform_int_distribution<std::uint32_t> dist(1, chunk_size - 2);
 
-    std::array<bool, 4> connected = {false, false, false, false};
-    for(int i = 0; i < 4; ++i)
-    {
-        if(!new_chunk->exits[i])
+        //create exit
+        sf::Vector2<std::uint32_t> room_pos;
+        if (dir.x != 0) 
         {
-            connected[i] = true;
+            room_pos.x = (dir.x > 0) ? chunk_size - 1 : 0;
+            room_pos.y = dist(rd_dev);
         }
+        else 
+        {
+            room_pos.x = dist(rd_dev);
+            room_pos.y = (dir.y > 0) ? chunk_size - 1 : 0;
+        }
+
+        std::shared_ptr<Room> n_room = std::make_shared<Room>(room_pos, std::vector({dir, -dir}));
+        new_chunk->exits[i] = n_room;
+        room_map.push_back({n_room, i});
+        std::shared_ptr<Room> other = std::make_shared<Room>
+        (
+            sf::Vector2<std::uint32_t>(room_pos.x - dir.x, room_pos.y - dir.y),
+            std::vector({dir})
+        );
+        room_map.push_back({other, i});
+        top_rooms[i] = other;
     }
 
-    uint32_t max_attempts = 10000;
-    while(!(connected[0] && connected[1] && connected[2] && connected[3]) && (--max_attempts > 0))
+    std::stringstream chunk_hash;
+    chunk_hash << "Chunk1_" << position.x << "_" << position.y << "_Seed_" << dungeon_seed << "_";
+    std::size_t chunk_seed = std::hash<std::string>{}(chunk_hash.str());
+    std::mt19937 rd_dev(chunk_seed);
+    std::uniform_int_distribution<std::uint32_t> dist(0, 3);
+
+    int max_attemps = 10000;
+    while((top_rooms[0] || top_rooms[1] || top_rooms[2] || top_rooms[3]) && (--max_attemps > 0))
     {
-        for(int i = 0; i < 4; ++i)
+        for (int i = 0; i < 4; ++i)
         {
-            if(connected[i])
+            std::shared_ptr<Room> current = top_rooms[i];
+            if(!current)
             {
                 continue;
             }
 
-            sf::Vector2i d;
-            if (room_lines[i].empty())
+            sf::Vector2i dir = dirs[dist(rd_dev)];
+            sf::Vector2<std::int64_t> n_pos =
             {
-                throw std::runtime_error("Chunk genaration failed, invalid exits generated");
-            }
-            if(room_lines[i].size() == 1)
-            {
-                if(new_chunk->rooms.back()->position.x == 0)
-                {
-                    d = {0, 1};
-                }
-                else if(new_chunk->rooms.back()->position.x == chunk_size)
-                {
-                    d = {0, -1};
-                }
-                else if(new_chunk->rooms.back()->position.y == 0)
-                {
-                    d = {-1, 0};
-                }
-                else
-                {
-                    d = {1, 0};
-                }
-            }
-            else
-            {
-                d = dirs[direction_selector(gen)];
-            }
+                current->position.x + dir.x,
+                current->position.y + dir.y
+            };
 
-            sf::Vector2<std::int64_t> t_pos;
-            t_pos.x = room_lines[i].back()->position.x + d.x;
-            t_pos.y = room_lines[i].back()->position.y + d.y;
-
-            //validate position
-            if(t_pos.x < 0 || t_pos.x >= chunk_size || t_pos.y < 0 || t_pos.y >= chunk_size)
+            // Bounds check, with keeping the borders clean
+            if (n_pos.x < 1 || n_pos.x >= chunk_size - 1 || n_pos.y < 1 || n_pos.y >= chunk_size - 1)
             {
                 continue;
             }
 
-            sf::Vector2<std::uint32_t> n_pos = {static_cast<std::uint32_t>(t_pos.x), static_cast<std::uint32_t>(t_pos.y)};
+            bool found = false;
+            int other = -1;
 
-            auto it = std::find_if(room_lines[i].begin(), room_lines[i].end(),
-                                   [&n_pos](const std::weak_ptr<Room> o)
-                                    {
-                                        if (auto ptr = o.lock())
-                                        {
-                                            return ptr->position.x == n_pos.x && ptr->position.y == n_pos.y;
-                                        }
-                                        return false;
-                                    });
-
-            if(it == room_lines[i].end())
+            for (const auto& [m_room, parent] : room_map)
             {
-                for(int j = 0; j < 4; ++j)
+                if (m_room->position.x == n_pos.x && m_room->position.y == n_pos.y)
                 {
-                    if(i == j)
-                    {
-                        continue;
-                    }
-
-                    auto rl_it = std::find_if(room_lines[j].begin(), room_lines[j].end(),
-                                   [&n_pos](const std::weak_ptr<Room> o)
-                                    {
-                                        if (auto ptr = o.lock())
-                                        {
-                                            return ptr->position.x == n_pos.x && ptr->position.y == n_pos.y;
-                                        }
-                                        return false;
-                                    });
-                    
-                    if(rl_it != room_lines[j].end())
-                    {
-                        connected[i] = true;
-                        connected[j] = true;
-                        break;
-                    }
+                    found = true;
+                    other = parent;
+                    break;
                 }
+            }
 
-                if(connected[i])
+            if (found)
+            {
+                if (other == i)
                 {
                     continue;
                 }
-
-                room_lines[i].push_back(std::make_shared<Room>(n_pos, std::vector<sf::Vector2i>({sf::Vector2i(-d.x, -d.y)})));
+                else if (other >= 0)
+                {
+                    top_rooms[i] = nullptr;
+                    top_rooms[other] = nullptr;
+                }
+                continue;
             }
+
+            // If not found, create new room
+            sf::Vector2<std::uint32_t> m_pos = 
+            {
+                static_cast<std::uint32_t>(n_pos.x),
+                static_cast<std::uint32_t>(n_pos.y)
+            };
+
+            auto new_room = std::make_shared<Room>(m_pos, std::vector{dir});
+            room_map.push_back({new_room, i});
+            top_rooms[i] = new_room;
         }
     }
 
-    for(int i = 0; i < 4; ++i)
+    for(const auto& [room, parent] : room_map)
     {
-        //copy the room lines into the final vector
-        new_chunk->rooms.insert(new_chunk->rooms.end(), room_lines[i].begin(), room_lines[i].end());
-    }
-
-    if(max_attempts <= 0)
-    {
-        Logger::log(Logger::MessageType::Warning, "Chunk generator infinite loop protection triggerd");
+        new_chunk->rooms.push_back(room);
     }
 
     return new_chunk;
