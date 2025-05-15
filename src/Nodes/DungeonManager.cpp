@@ -18,6 +18,20 @@ void DungeonManager::initialize()
 DungeonManager::Room::Room(sf::Vector2<std::uint32_t> pos, std::vector<sf::Vector2i> exits)
                           : position(pos), exits(exits) {}
 
+//helper function
+std::string get_edge_hash(sf::Vector2<std::int64_t> a, sf::Vector2<std::int64_t> b,
+                          std::int64_t dungeon_seed)
+{
+    if (a.x > b.x || (a.x == b.x && a.y > b.y)) {
+        std::swap(a, b);
+    }
+
+    std::stringstream ss;
+    ss << "Chunk1_" << a.x << "_" << a.y << "Chunk2_" << b.x << "_" << b.y;
+    ss << "_Seed_" << dungeon_seed;
+    return ss.str();
+}
+
 std::shared_ptr<DungeonManager::Chunk> DungeonManager::get_chunk(sf::Vector2<std::int64_t> position)
 {
     if(abs(position.x) > dungeon_size.x / 2 || abs(position.y) > dungeon_size.y / 2)
@@ -39,7 +53,7 @@ std::shared_ptr<DungeonManager::Chunk> DungeonManager::get_chunk(sf::Vector2<std
         //boundary check
         const sf::Vector2i& dir = dirs[i];
         sf::Vector2<std::int64_t> adjacent = {position.x + dir.x, position.y + dir.y};
-        if(std::abs(adjacent.x) >= (chunk_size / 2) || std::abs(adjacent.y) >= (chunk_size / 2))
+        if(std::abs(adjacent.x) > (dungeon_size.x / 2) || std::abs(adjacent.y) > (dungeon_size.y / 2))
         {
             new_chunk->exits[i] = nullptr;
             top_rooms[i] = nullptr;
@@ -47,32 +61,21 @@ std::shared_ptr<DungeonManager::Chunk> DungeonManager::get_chunk(sf::Vector2<std
         }
 
         //generate seed for edge of two chunks
-        std::stringstream exit_hash;
-        exit_hash << "Chunk1_";
-        if(position.x < adjacent.x)
-        {
-            exit_hash << position.x << '_' << position.y << adjacent.x << '_' << adjacent.y;
-        }
-        else
-        {
-            exit_hash << adjacent.x << '_' << adjacent.y <<  position.x << '_' << position.y;
-        }
-        exit_hash << "_Seed_" << dungeon_seed;
-
-        std::size_t exit_seed = std::hash<std::string>{}(exit_hash.str());
+        std::size_t exit_seed = std::hash<std::string>{}(get_edge_hash(position, adjacent, dungeon_seed));
         std::mt19937 rd_dev(exit_seed);
         std::uniform_int_distribution<std::uint32_t> dist(1, chunk_size - 2);
+        std::uint32_t exit_pos = dist(rd_dev);
 
         //create exit
         sf::Vector2<std::uint32_t> room_pos;
         if (dir.x != 0) 
         {
             room_pos.x = (dir.x > 0) ? chunk_size - 1 : 0;
-            room_pos.y = dist(rd_dev);
+            room_pos.y = exit_pos;
         }
         else 
         {
-            room_pos.x = dist(rd_dev);
+            room_pos.x = exit_pos;
             room_pos.y = (dir.y > 0) ? chunk_size - 1 : 0;
         }
 
@@ -94,6 +97,7 @@ std::shared_ptr<DungeonManager::Chunk> DungeonManager::get_chunk(sf::Vector2<std
     std::mt19937 rd_dev(chunk_seed);
     std::uniform_int_distribution<std::uint32_t> dist(0, 3);
 
+    //replace with proper bfs
     int max_attemps = 10000;
     while((top_rooms[0] || top_rooms[1] || top_rooms[2] || top_rooms[3]) && (--max_attemps > 0))
     {
@@ -139,6 +143,7 @@ std::shared_ptr<DungeonManager::Chunk> DungeonManager::get_chunk(sf::Vector2<std
                 }
                 else if (other >= 0)
                 {
+                    //should be a map
                     top_rooms[i] = nullptr;
                     top_rooms[other] = nullptr;
                 }
@@ -179,7 +184,7 @@ void DungeonManager::display_chunk(std::shared_ptr<Chunk> debug)
         {
             sf::Vector2f n_pos;
             n_pos.x = pos.x + room->position.x * 20.f;
-            n_pos.y = pos.y + room->position.y * 20.f;
+            n_pos.y = pos.y + (chunk_size - 1 - room->position.y) * 20.f;   //flip axis
             std::shared_ptr<sf::RectangleShape> room_rect = std::make_shared<sf::RectangleShape>(sf::Vector2(15.f, 15.f));
             room_rect->setPosition(n_pos);
             room_rect->setFillColor(sf::Color::Green);
