@@ -38,7 +38,7 @@ void Application::initialize()
         {
             if(e.scancode == sf::Keyboard::Scancode::Enter)
             {
-                get_manager<DungeonManager>()->get_chunk({0, 0});
+                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->get_chunk({0, 0}));
             }
         });
     //********************************************/

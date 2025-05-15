@@ -48,6 +48,7 @@ class DungeonManager : public Node
     };
     
     void initialize() override;
-    void update(float delta) override {}
-    Chunk get_chunk(sf::Vector2<std::int64_t> position);
+    void update(float delta) override{}
+    std::shared_ptr<Chunk> get_chunk(sf::Vector2<std::int64_t> position);
+    void display_chunk(std::shared_ptr<Chunk>); //mostly likely for debugging only;
 };
