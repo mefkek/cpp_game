@@ -1,5 +1,6 @@
 #include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
+#include "Nodes/DungeonManager.hpp"
 #include "Nodes/FPSCounter.hpp"
 #include "Events.hpp"
 #include <stack>
@@ -22,6 +23,7 @@ void Application::initialize()
 
     register_manager<RenderManager>();  //maybe should be added first
     register_manager<WindowEventManager>();     //just an empty node, at least for now
+    register_manager<DungeonManager>();
 
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
@@ -31,6 +33,14 @@ void Application::initialize()
         subscribe([&](const sf::Event::Closed& e){close();});
     get_manager<WindowEventManager>()->get_event<sf::Event::Resized>()->
         subscribe([&](const sf::Event::Resized& e){get_manager<RenderManager>()->rescale();});
+    get_manager<WindowEventManager>()->get_event<sf::Event::KeyPressed>()->
+        subscribe([&](const sf::Event::KeyPressed& e)
+        {
+            if(e.scancode == sf::Keyboard::Scancode::Enter)
+            {
+                get_manager<DungeonManager>()->get_chunk({0, 0});
+            }
+        });
     //********************************************/
 }
 

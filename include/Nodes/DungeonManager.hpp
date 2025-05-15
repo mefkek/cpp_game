@@ -8,6 +8,13 @@
 class DungeonManager : public Node
 {
     private:
+    std::uint32_t chunk_size;
+    sf::Vector2<std::uint32_t> dungeon_size;
+
+    std::size_t dungeon_seed;
+
+    public:
+
     enum RoomType
     {
         Empty = 0,
@@ -16,12 +23,14 @@ class DungeonManager : public Node
         Trap,
         Trader
     };
-
+    
     class Room
     {
         public:
+        sf::Vector2<std::uint32_t> position;
+        std::vector<sf::Vector2i> exits;
         RoomType type;
-        std::array<std::pair<sf::Vector2i, std::uint32_t>, 4> exits;
+        Room(sf::Vector2<std::uint32_t> pos = {0, 0}, std::vector<sf::Vector2i> exits = {});
     };
 
     class Corridor : public Room
@@ -34,16 +43,10 @@ class DungeonManager : public Node
     class Chunk
     {
         public:
-        std::array<std::pair<sf::Vector2i, std::uint32_t>, 4> exits;
+        std::array<std::shared_ptr<Room>, 4> exits;
         std::vector<std::shared_ptr<Room>> rooms;
     };
-
-    std::uint32_t chunk_size;
-    sf::Vector2<std::uint32_t> dungeon_size;
-
-    std::size_t dungeon_seed;
-
-    public:
+    
     void initialize() override;
     void update(float delta) override {}
     Chunk get_chunk(sf::Vector2<std::int64_t> position);
