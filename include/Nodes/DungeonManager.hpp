@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <cstdint>
 #include <vector>
 #include <array>
 #include "Node.hpp"
@@ -20,7 +21,7 @@ class DungeonManager : public Node
     {
         public:
         RoomType type;
-        std::vector<sf::Vector2i> exits;
+        std::array<std::pair<sf::Vector2i, std::uint32_t>, 4> exits;
     };
 
     class Corridor : public Room
@@ -33,18 +34,17 @@ class DungeonManager : public Node
     class Chunk
     {
         public:
-        std::array<int, 4> exits;
+        std::array<std::pair<sf::Vector2i, std::uint32_t>, 4> exits;
         std::vector<std::shared_ptr<Room>> rooms;
     };
 
-    sf::Vector2u chunk_size;
-    sf::Vector2u dungeon_size;
+    std::uint32_t chunk_size;
+    sf::Vector2<std::uint32_t> dungeon_size;
 
-    unsigned int dungeon_seed;
+    std::size_t dungeon_seed;
 
     public:
-    DungeonManager();
     void initialize() override;
     void update(float delta) override {}
-    Chunk get_chunk(sf::Vector2i position);
+    Chunk get_chunk(sf::Vector2<std::int64_t> position);
 };
