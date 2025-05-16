@@ -3,6 +3,9 @@ set(SOURCES
     Application.cpp
     RenderManager.cpp
     FPSCounter.cpp
+    Colliders.cpp
+    CollisionManager.cpp
+    TriggerArea.cpp
 )
 
 add_library(Nodes ${SOURCES})

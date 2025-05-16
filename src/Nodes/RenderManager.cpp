@@ -18,23 +18,30 @@ RenderLayer::RenderLayer(sf::Vector2u size)
     sp = std::make_unique<sf::Sprite>(this->tex->getTexture());
 }
 
-sf::Vector2u RenderManager::get_render_texture_size(const std::string& name)
+sf::RenderTexture& RenderManager::get_render_texture(const std::string& name)
 {
-    /*
-        For placing entities into their respective places
-    */
-    
-
     if(string_ref.count(name))
     {
         if(layers.count(string_ref[name]))
         {
-            return layers[string_ref[name]].tex->getTexture().getSize();
+            return *(layers.at(string_ref[name]).tex);
         }
     }
 
-    Logger::log(Logger::MessageType::Warning, "Layer with name: ", name, " has not been found.");
-    return {-1u, -1u};
+    throw std::runtime_error("Layer with name: " +  name + " has not been found.");
+}
+
+sf::Sprite& RenderManager::get_render_sprite(const std::string& name)
+{
+    if(string_ref.count(name))
+    {
+        if(layers.count(string_ref[name]))
+        {
+            return *(layers.at(string_ref[name]).sp);
+        }
+    }
+
+    throw std::runtime_error("Layer with name: " +  name + " has not been found.");
 }
 
 void RenderManager::add_layer(const std::string& name, char priority, sf::Vector2u size)

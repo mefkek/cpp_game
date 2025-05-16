@@ -1,5 +1,6 @@
 #include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
+#include "Nodes/CollisionManager.hpp"
 #include "Nodes/FPSCounter.hpp"
 #include "Events.hpp"
 #include <stack>
@@ -20,17 +21,32 @@ void Application::initialize()
     fps->set_position({15, 15});
     root_level.push_back(fps);
 
-    register_manager<RenderManager>();  //maybe should be added first
+    register_manager<RenderManager>();  //maybe should be added first    register_manager<CollisionManager>();
     register_manager<WindowEventManager>();     //just an empty node, at least for now
+    register_manager<CollisionManager>();
 
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
     get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps->text));
 
+    get_manager<CollisionManager>()->add_layer("Debug_coll", 0);
+
+    //for testing collisions
+    root_level.push_back(create<DebugRect>());
+    root_level.push_back(create<DebugCirc>());
+
     get_manager<WindowEventManager>()->get_event<sf::Event::Closed>()->
         subscribe([&](const sf::Event::Closed& e){close();});
     get_manager<WindowEventManager>()->get_event<sf::Event::Resized>()->
         subscribe([&](const sf::Event::Resized& e){get_manager<RenderManager>()->rescale();});
+
+    //uncomment for testing
+    /*
+    get_manager<CollisionManager>()->add_layer("Test Layer", 1);
+    get_manager<CollisionManager>()->add_collider("Test Layer", insert rectangle collider);
+    get_manager<CollisionManager>()->add_collider("Test Layer", insert cirlce collider, preferably following mouse);
+    get_manager<CollisionManager>()->add_collider("Test Layer", insert cirlce collider);
+    /*
     //********************************************/
 }
 
