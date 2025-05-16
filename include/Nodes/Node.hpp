@@ -14,20 +14,26 @@ class Node : public std::enable_shared_from_this<Node>
     std::vector<std::shared_ptr<Node>> children;
     std::weak_ptr<Node> parent;
 
-    template<typename T, typename... Args>
-    friend std::shared_ptr<T> create(Args&&... args);
-
-    Node() = default;   //should only be used when adding root (friend Application?)
-
     public:
-    virtual void initialize() {}    //acts as a contructor without the danger of bad_weak_ptr
+    Node() = default;   //should only be used when adding root (friend Application?)
 
     virtual void update(float) = 0;
 
     std::vector<std::shared_ptr<Node>>& get_children();
 
     template <typename T, typename ... Args>
-    std::weak_ptr<T> add_child(Args&&... args);
+    void add_child(Args&&... args)
+    {
+        std::shared_ptr<T> new_child = std::make_shared<T>(std::forward<Args>(args)...);
+        if(auto p = std::dynamic_pointer_cast<Node>(new_child))     //if child is not a node, ignore
+        {
+            p->parent = shared_from_this();
+            children.push_back(new_child);
+            return;
+        }
+
+        Logger::log(Logger::MessageType::Warning, "Node ", this->shared_from_this(), " tried to add invalid child type.");
+    }
 
     void remove_child(std::shared_ptr<Node>);
 
@@ -36,12 +42,4 @@ class Node : public std::enable_shared_from_this<Node>
     virtual ~Node() = default;
 };
 
-std::ostream& operator<<(std::ostream& os, const std::shared_ptr<Node>& n);
-
-/*
-    this should be used any time a node is added, but
-    as a contructor needs to be public it can't be enforced
-*/
-template<typename T, typename... Args>
-std::shared_ptr<T> create(Args&&... args);
-
+std::ostream& operator<<(std::ostream& os, std::shared_ptr<Node>& n);
