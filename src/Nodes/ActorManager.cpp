@@ -1,63 +1,33 @@
-#include <Nodes/ActorManager.hpp>
-#include "Nodes/ActorRace.hpp"
+#include "Nodes/ActorManager.hpp"
 
+ActorManager::ActorManager()
+{
+    playerParty_ = add_child<Party>();
+    enemyParty_  = add_child<Party>();
+}
 
-/*void ActorManager::addActor(const std::shared_ptr<Actor>& actor) {
-    actors.push_back(actor);
+std::shared_ptr<Actor> ActorManager::addActor(
+    ActorRaceEnum race,
+    std::shared_ptr<ActorBehaviour> behaviour)
+{
+    // Create the actor as a direct child
+    auto actor = add_child<Actor>(race, behaviour);
 
-    // przyporządkowanie do drużyny wg rasy:
-    switch (actor->getRace()) {
+    // Also add to the appropriate party
+    switch (race)
+    {
         case ActorRaceEnum::Zombie:
         case ActorRaceEnum::Skeleton:
         case ActorRaceEnum::Spider:
         case ActorRaceEnum::Lich:
-            enemy_party.addActor(actor);
-            break;
-            // wszyscy inni to gracz
-        default:
-            player_party.addActor(actor);
-            break;
-    }
-}
-
-void ActorManager::removeActor(const std::shared_ptr<Actor>& actor) {
-    actors.erase(
-        std::remove(actors.begin(), actors.end(), actor),
-        actors.end()
-    );
-    // usuń z obu drużyn
-    player_party.removeActor(actor);
-    enemy_party.removeActor(actor);
-
-}*/
-ActorManager::ActorManager() {
-    // Tworzymy partie jako pod-węzły
-    player_party = add_child<Party>();
-    enemy_party  = add_child<Party>();
-}
-
-std::shared_ptr<Actor> ActorManager::addActor(ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behav) {
-    // Tworzymy aktora jako dziecko tego menedżera
-    auto actor = add_child<Actor>(race, behav);
-
-    // Dodajemy go do odpowiedniej drużyny
-    switch (actor->getRace()) {
-        case ActorRaceEnum::Zombie:
-        case ActorRaceEnum::Skeleton:
-        case ActorRaceEnum::Spider:
-        case ActorRaceEnum::Lich:
-            enemy_party->addActor(actor);
+            enemyParty_->add_child<Actor>(race, behaviour);
             break;
         default:
-            player_party->addActor(actor);
+            playerParty_->add_child<Actor>(race, behaviour);
             break;
     }
 
     return actor;
 }
 
-void ActorManager::update(float delta) {
-    for (auto& child : children) {
-        child->update(delta);
-    }
-}
+// No update override: Node::update(delta) will traverse parties & actors automatically.

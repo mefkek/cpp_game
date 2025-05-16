@@ -1,27 +1,51 @@
 #include "Nodes/Actor.hpp"
+#include "Utility/Logger.hpp"
 
-Actor::Actor(ActorRaceEnum raceIn, std::shared_ptr<ActorBehaviour> behav)
-    : race(raceIn), behaviour(behav)
+#include <typeinfo>
+#include <string>
+
+Actor::Actor(ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour)
+    : race_(race)
+    , behaviour_(behaviour)
 {
-    // przykładowa inicjalizacja
-    stats["HP"]     = 100;
-    stats["Attack"] = 10;
+    // Default stats
+    stats_["HP"]     = 100;
+    stats_["Attack"] = 10;
 }
 
-void Actor::update(float delta) {
-    if (behaviour)
-        behaviour->behave(*this);
-}
-
-void Actor::changeStat(const std::string& name, int delta) {
-    // istnienie klucza:
-    auto it = stats.find(name);
-    if (it == stats.end()) {
-        // rzucamy wyjątek, jeśli statystyka o podanej nazwie nie istnieje
-        throw std::out_of_range("Stat '" + name + "' does not exist");
+void Actor::update(float delta)
+{
+    if (behaviour_)
+    {
+        behaviour_->behave(*this);
     }
-    // aktualizacja wartości
-    it->second += delta;
-    // wywołanie hooka po zmianie
-    onStatChange(name, it->second);
-};
+}
+
+void Actor::changeStat(const std::string& name, int delta)
+{
+    auto it = stats_.find(name);
+    if (it == stats_.end())
+    {
+        // Log a warning if the stat does not exist
+        const std::string caller = typeid(*this).name();
+        Logger::log(
+            Logger::MessageType::Warning,
+            caller,
+            "tried changing non-existent stat ",
+            name
+        );
+        onStatChangeFailed(name, delta);
+        return;
+    }
+
+    int newValue = it->second + delta;
+    it->second = newValue;
+
+    // Invoke success hook after stat modification
+    onStatChange(name, newValue);
+}
+
+ActorRaceEnum Actor::getRace() const
+{
+    return race_;
+}

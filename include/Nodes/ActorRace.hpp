@@ -1,6 +1,6 @@
 #pragma once
 
-// Rasy
+// Race
 enum class ActorRaceEnum : unsigned char {
     Zombie,
     Skeleton,

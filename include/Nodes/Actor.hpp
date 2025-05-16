@@ -1,37 +1,39 @@
 #pragma once
+
 #include "Node.hpp"
 #include "ActorRace.hpp"
 #include "ActorBehaviour.hpp"
+#include "ContainerNode.hpp"
+
 #include <unordered_map>
 #include <string>
 #include <memory>
-#include <stdexcept>    // dodane dla std::out_of_range
 
-class Actor : public Node {
+// A game entity with stats and behavior.
+class Actor : public Node
+{
 public:
-    Actor(ActorRaceEnum raceIn, std::shared_ptr<ActorBehaviour> behav);
-    virtual ~Actor() override = default;
+    Actor(ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour);
+    ~Actor() override = default;
 
-    // co klatkę
+    // Called once per frame.
     void update(float delta) override;
 
-    // zmiana statystyki o delta
+    // Adjust a stat; logs a warning if the stat key doesn’t exist.
     void changeStat(const std::string& name, int delta);
 
-    // dostęp do rasy
-    ActorRaceEnum getRace() const { return race; }
-
-    // czy martwy?
-    bool isDead() const {
-        auto it = stats.find("HP");
-        return it != stats.end() && it->second <= 0;
-    }
+    // Query this actor’s race.
+    ActorRaceEnum getRace() const;
 
 protected:
+    // Hook after a successful stat change.
+    virtual void onStatChange(const std::string& name, int newValue)    {}
 
-    virtual void onStatChange(const std::string& name, int newValue){};
+    // Hook when changing a non-existent stat.
+    virtual void onStatChangeFailed(const std::string& name, int delta) {}
+
 private:
-    std::unordered_map<std::string,int>    stats;
-    ActorRaceEnum                         race;
-    std::shared_ptr<ActorBehaviour>       behaviour;
+    ActorRaceEnum                       race_;
+    std::shared_ptr<ActorBehaviour>     behaviour_;
+    std::unordered_map<std::string,int> stats_;
 };
