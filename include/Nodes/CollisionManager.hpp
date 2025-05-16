@@ -2,6 +2,7 @@
 #include <vector>
 #include "Node.hpp"
 #include "Colliders.hpp"
+#include "TriggerArea.hpp"
 #include <SFML/Graphics.hpp>
 #include <functional>
 #include <map>
