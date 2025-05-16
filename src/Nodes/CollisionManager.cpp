@@ -28,8 +28,8 @@ void CollisionManager::collide()
                     {                    
                         if (a->collides_with(b)) 
                         {
-                            a->on_collision(b);
-                            b->on_collision(a);
+                            a->get_on_collision_event().lock()->rise(b);
+                            b->get_on_collision_event().lock()->rise(a);
                         }
                     }
                 }
@@ -140,17 +140,27 @@ sf::Text& Button::get_text()
 //debug
 void DebugRect::initialize()
 {
-    sf::Vector2f pos;
-    pos.x = Application::instance().get_manager<RenderManager>()->
-            get_render_texture("Debug_ui").getSize().x / 2.f;
-    pos.y = Application::instance().get_manager<RenderManager>()->
-            get_render_texture("Debug_ui").getSize().y / 2.f;
+    sf::RenderWindow& window = Application::instance().get_window();
+    sf::RenderTexture& tex = Application::instance().get_manager<RenderManager>()->
+                             get_render_texture("Debug_ui");
+
+    sf::Vector2f pos = {window.getSize().x / 2.f,window.getSize().y / 2.f};
+    sf::Vector2f scale = Application::instance().get_manager<RenderManager>()->
+                         get_render_sprite("Debug_ui").getScale();
+
+    //apply the transform applied to the layer so the thing is properly display
+    sf::Vector2f pos_to_texture = {pos.x / scale.x, pos.y / scale.y};
+
     shape = std::make_shared<sf::RectangleShape>(sf::Vector2f(250.f, 250.f));
     shape->setOrigin({250.f / 2, 250.f / 2});
-    shape->setPosition(pos);
-    trigger = add_child<DebugTrigger>(pos, sf::Vector2f(250.f, 250.f)).lock();
+    shape->setPosition(pos_to_texture);
+
+    //undo the transform becouse we want the colliders to be positioned in window cooridinates
+    trigger = add_child<DebugTrigger>(pos, sf::Vector2f(250.f * scale.x, 250.f * scale.y)).lock();
     Application::instance().get_manager<RenderManager>()->add_drawable("Debug_ui", shape);
     Application::instance().get_manager<CollisionManager>()->add_collider("Debug_coll", trigger);
+
+    //same in logic applies to the circle
 }
 
 void DebugCirc::update(float delta)
@@ -161,21 +171,29 @@ void DebugCirc::update(float delta)
     sf::Vector2f mouse_translated = Application::instance().get_window().mapPixelToCoords(mouse_pos);
     sf::Vector2f scale = Application::instance().get_manager<RenderManager>()->
                          get_render_sprite("Debug_ui").getScale();
-    mouse_translated.x /= scale.x;
-    mouse_translated.y /= scale.y;
-    shape->setPosition(mouse_translated);
-    trigger->position = shape->getPosition();
+    sf::Vector2f mouse_to_texture = {mouse_translated.x / scale.x, mouse_translated.y / scale.y};
+    shape->setPosition(mouse_to_texture);
+    trigger->position = {mouse_translated};
 }
 
 void DebugCirc::initialize()
 {
+    sf::RenderWindow& window = Application::instance().get_window();
+    sf::RenderTexture& tex = Application::instance().get_manager<RenderManager>()->
+                             get_render_texture("Debug_ui");
     sf::Vector2f pos;
-    pos.x = Application::instance().get_window().getSize().x / 2;
-    pos.y = Application::instance().get_window().getSize().y / 2;
+    pos.x = window.getSize().x / 2;
+    pos.y = window.getSize().y / 2;
     shape = std::make_shared<sf::CircleShape>(50.f);
-    shape->setOrigin({25, 25});
+    sf::Vector2f offset = {50, 50};
+    shape->setOrigin(offset);
     shape->setPosition(pos);
-    trigger = add_child<DebugTriggerCirc>(sf::Vector2f(50.f, 50.f), 50.f).lock();
+
+    sf::Vector2f scale = Application::instance().get_manager<RenderManager>()->
+                         get_render_sprite("Debug_ui").getScale();
+    float uniform_scale = 0.5f * (scale.x + scale.y);  //approximation
+
+    trigger = add_child<DebugTriggerCirc>(sf::Vector2f(50.f / scale.x, 50.f / scale.y), 50.f * uniform_scale).lock();
     Application::instance().get_manager<RenderManager>()->add_drawable("Debug_ui", shape);
     Application::instance().get_manager<CollisionManager>()->add_collider("Debug_coll", trigger);
 }

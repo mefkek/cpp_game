@@ -13,7 +13,7 @@ TriggerAreaColliderCircle::TriggerAreaColliderCircle(sf::Vector2f position, floa
 
 void TriggerAreaColliderCircle::on_collision(const std::weak_ptr<Collider> other)
 {
-    Logger::log(Logger::MessageType::Info, shared_from_this(), " collision detected");
+    //Logger::log(Logger::MessageType::Info, shared_from_this(), " collision detected");
     entered_frame.push_back(other);
 }
 
@@ -105,7 +105,7 @@ TriggerAreaColliderRect::TriggerAreaColliderRect(sf::Vector2f position, sf::Vect
 
 void TriggerAreaColliderRect::on_collision(const std::weak_ptr<Collider> other)
 {
-    Logger::log(Logger::MessageType::Info, shared_from_this(), " collision detected");
+    //Logger::log(Logger::MessageType::Info, shared_from_this(), " collision detected");
     entered_frame.push_back(other);
 }
 

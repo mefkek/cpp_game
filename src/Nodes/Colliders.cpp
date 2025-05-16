@@ -1,8 +1,6 @@
 #include "Nodes/Colliders.hpp"
-#include "Nodes/TriggerArea.hpp"
 #include "Utility/Logger.hpp"
 #include <algorithm>
-
 
 Collider::Collider(sf::Vector2f position, sf::Vector2f size)
                    : position(position), size(size) {}
@@ -26,20 +24,33 @@ RectangleCollider::RectangleCollider(sf::Vector2f pos, sf::Vector2f size_)
 
 bool RectangleCollider::collides_with(const std::shared_ptr<Collider> other) const
 {
-    bool collides =!(position.x + size.x < other->position.x ||
-                     position.x > other->position.x + other->size.x ||
-                     position.y + size.y < other->position.y ||
-                     position.y > other->position.y + other->size.y);
-    if(collides)
+    bool collides;
+
+    //get rectangle bounds, we assume that the position is it's center
+    float left = position.x - size.x / 2.f;
+    float right = position.x + size.x / 2.f;
+    float top = position.y - size.y / 2.f;
+    float bottom = position.y + size.y / 2.f;
+
+    //check if circle
+    if(auto circle = std::dynamic_pointer_cast<CircleCollider>(other))
     {
-        if(auto ev_ptr = this->get_on_collision_event().lock())
-        {
-            ev_ptr->rise(other);
-        }
-        else
-        {
-            Logger::log(Logger::MessageType::Warning, shared_from_this(), ": invalid collision event");
-        }
+        float closestX = std::clamp(circle->position.x, left, right);
+        float closestY = std::clamp(circle->position.y, top, bottom);
+
+        float dx = circle->position.x - closestX;
+        float dy = circle->position.y - closestY;
+        collides = (dx * dx + dy * dy) <= (circle->radius * circle->radius);
+    }
+    else
+    {
+        //get other rectangle bounds
+        float other_left = other->position.x - other->size.x / 2.f;
+        float other_right = other->position.x + other->size.x / 2.f;
+        float other_top = other->position.y - other->size.y / 2.f;
+        float other_bottom = other->position.y + other->size.y / 2.f;
+
+        collides = !(right <= other_left || left >= other_right || bottom <= other_top || top >= other_bottom);
     }
 
     return collides;
@@ -51,36 +62,26 @@ CircleCollider::CircleCollider(sf::Vector2f center, float r)
 bool CircleCollider::collides_with(const std::shared_ptr<Collider> other) const
 {
     bool collides;
-    if (auto circle = std::dynamic_pointer_cast<CircleCollider>(other)) 
+
+    //check if circle
+    if (auto circle = std::dynamic_pointer_cast<CircleCollider>(other))
     {
         float dx = position.x - circle->position.x;
         float dy = position.y - circle->position.y;
         float dist_sq = dx * dx + dy * dy;
         float radius_sum = radius + circle->radius;
-        collides = dist_sq <= radius_sum * radius_sum;
+        collides = (dist_sq <= radius_sum * radius_sum);
     }
     else
     {
         sf::Vector2f rect_pos = other->position;
         sf::Vector2f rect_size = other->size;
-        float closestX = std::clamp(position.x, rect_pos.x, rect_pos.x + rect_size.x);
-        float closestY = std::clamp(position.y, rect_pos.y, rect_pos.y + rect_size.y);
+        float closestX = std::clamp(position.x, rect_pos.x - rect_size.x / 2.f, rect_pos.x + rect_size.x / 2.f);
+        float closestY = std::clamp(position.y, rect_pos.y - rect_size.x / 2.f, rect_pos.y + rect_size.y / 2.f);
 
         float dx = position.x - closestX;
         float dy = position.y - closestY;
         collides = (dx * dx + dy * dy) <= (radius * radius);
-    }
-
-    if(collides)
-    {
-        if(auto ev_ptr = get_on_collision_event().lock())
-        {
-            ev_ptr->rise(other);
-        }
-        else
-        {
-            Logger::log(Logger::MessageType::Warning, shared_from_this(), ": invalid collision event");
-        }
     }
 
     return collides;
