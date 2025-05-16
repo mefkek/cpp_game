@@ -1,6 +1,6 @@
 #include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
-#include "Nodes/DungeonManager.hpp"
+#include "DungeonManager/DungeonManager.hpp"
 #include "Nodes/FPSCounter.hpp"
 #include "Events.hpp"
 #include <stack>
@@ -40,33 +40,33 @@ void Application::initialize()
             if(e.scancode == sf::Keyboard::Scancode::Enter)
             {
                 Logger::log(Logger::MessageType::Info, "Chunk: ", chunkcoords.x, " ", chunkcoords.y);
-                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->get_chunk(chunkcoords));
+                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->chunk_getter->operator()(chunkcoords));
             }
             else if(e.scancode == sf::Keyboard::Scancode::Up)
             {
                 ++chunkcoords.y;
-                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->get_chunk(chunkcoords));
+                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->chunk_getter->operator()(chunkcoords));
                 Logger::log(Logger::MessageType::Info, "Chunk: ", chunkcoords.x, " ", chunkcoords.y);
 
             }
             else if(e.scancode == sf::Keyboard::Scancode::Down)
             {
                 --chunkcoords.y;
-                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->get_chunk(chunkcoords));
+                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->chunk_getter->operator()(chunkcoords));
                 Logger::log(Logger::MessageType::Info, "Chunk: ", chunkcoords.x, " ", chunkcoords.y);
 
             }
             else if(e.scancode == sf::Keyboard::Scancode::Right)
             {
                 ++chunkcoords.x;
-                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->get_chunk(chunkcoords));
+                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->chunk_getter->operator()(chunkcoords));
                 Logger::log(Logger::MessageType::Info, "Chunk: ", chunkcoords.x, " ", chunkcoords.y);
 
             }
             else if(e.scancode == sf::Keyboard::Scancode::Left)
             {
                 --chunkcoords.x;
-                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->get_chunk(chunkcoords));
+                get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->chunk_getter->operator()(chunkcoords));
                 Logger::log(Logger::MessageType::Info, "Chunk: ", chunkcoords.x, " ", chunkcoords.y);
 
             }

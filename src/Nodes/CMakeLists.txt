@@ -3,7 +3,6 @@ set(SOURCES
     Application.cpp
     RenderManager.cpp
     FPSCounter.cpp
-    DungeonManager.cpp
 )
 
 add_library(Nodes ${SOURCES})
