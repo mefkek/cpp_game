@@ -11,3 +11,5 @@
     Source: https://stackoverflow.com/questions/281818/unmangling-the-result-of-stdtype-infoname
 */
 std::string demangle(const char* name);
+
+std::string print_tree();

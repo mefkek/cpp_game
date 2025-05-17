@@ -22,12 +22,10 @@ class RenderManager : public Node
     private:
     std::map<unsigned char, RenderLayer> layers;
     std::map<std::string, unsigned char> string_ref;
-    sf::RenderWindow* window_ptr; //Pointer for resizing, as resizing could happen in Application constructor and cause bugs
 
     public:
-    void set_window(sf::RenderWindow* window);
-
-    sf::Vector2u get_render_texture_size(const std::string& name);
+    sf::RenderTexture& get_render_texture(const std::string& name);
+    sf::Sprite& get_render_sprite(const std::string& name);
 
     void add_layer(const std::string& name, char priority = 0, sf::Vector2u size = {640, 360});
 
