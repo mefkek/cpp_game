@@ -4,6 +4,8 @@
 #include <iostream>
 #include <algorithm>
 
+WindowEventManager::~WindowEventManager() = default;
+
 void WindowEventManager::update(float delta)
 {
     sf::RenderWindow& window = Application::instance().get_window();
@@ -19,3 +21,4 @@ void WindowEventManager::update(float delta)
         }
     }
 }
+

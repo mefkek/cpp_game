@@ -1,3 +1,5 @@
+#include <memory>
+
 template<typename T, typename... Args>
 std::shared_ptr<T> create(Args&&... args)
 {
@@ -10,7 +12,7 @@ std::shared_ptr<T> create(Args&&... args)
 }
 
 template <typename T, typename ... Args>
-std::weak_ptr<T> Node::add_child(Args&&... args)
+std::shared_ptr_ptr<T> Node::add_child(Args&&... args)
 {
     std::shared_ptr<T> new_node = create<T>(std::forward<Args>(args)...);
     children.push_back(new_node);

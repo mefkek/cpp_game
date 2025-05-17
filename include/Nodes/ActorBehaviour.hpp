@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Nodes/Actor.hpp"
-class Actor;
+#include "Actor.hpp"
+class  Actor;
 // Defines per-frame behavior for an Actor.
 class ActorBehaviour
 {

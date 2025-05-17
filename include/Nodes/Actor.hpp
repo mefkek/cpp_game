@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Node.hpp"
-#include "ActorRace.hpp"
-#include "ActorBehaviour.hpp"
-#include "ContainerNode.hpp"
+#include "Nodes/Node.hpp"
+#include "Nodes/ActorRace.hpp"
+#include "Nodes/ActorBehaviour.hpp"
 
 #include <unordered_map>
 #include <string>
@@ -13,6 +12,7 @@
 class Actor : public Node
 {
 public:
+    // Construct with a race and initial behavior.
     Actor(ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour);
     ~Actor() override = default;
 
@@ -27,7 +27,7 @@ public:
 
 protected:
     // Hook after a successful stat change.
-    virtual void onStatChange(const std::string& name, int newValue)    {}
+    virtual void onStatChange(const std::string& name, int newValue) {}
 
     // Hook when changing a non-existent stat.
     virtual void onStatChangeFailed(const std::string& name, int delta) {}

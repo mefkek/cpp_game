@@ -17,7 +17,7 @@ public:
     std::shared_ptr<Actor> addActor(ActorRaceEnum race,
                                     std::shared_ptr<ActorBehaviour> behaviour);
 
-    // Rely on base Node::update(delta) for propagation; no override needed.
+    // No override of update(): Node::update(delta) will propagate through the tree.
 
 private:
     std::shared_ptr<Party> playerParty_;

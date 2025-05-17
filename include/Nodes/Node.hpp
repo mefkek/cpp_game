@@ -43,3 +43,8 @@ class Node : public std::enable_shared_from_this<Node>
 };
 
 std::ostream& operator<<(std::ostream& os, std::shared_ptr<Node>& n);
+
+template<typename T, typename... Args>
+std::shared_ptr<T> create(Args&&... args) {
+    return std::make_shared<T>(std::forward<Args>(args)...);
+}
