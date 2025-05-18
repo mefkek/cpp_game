@@ -10,8 +10,8 @@
 void DungeonManager::initialize()
 {
     this->dungeon_seed = 10;    //for debugging only
-    this->dungeon_size = {4, 4};
-    this->chunk_size = 32;
+    this->dungeon_size = {256, 256};
+    this->chunk_size = 10;
 
     chunk_getter = std::make_unique<ChunkGenerator>(chunk_size, dungeon_size, dungeon_seed);
 }
