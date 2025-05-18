@@ -39,15 +39,10 @@ struct DungeonRect
         sf::Vector2i offset = rect.position;
 
         unsigned int d_bound = (division_axis.x != 0) ? rect.size.x : rect.size.y;
-        long long min_div_size = std::min(dungeon_min, chunk_size / 5);
+        long long min_div_size = std::min(dungeon_min, 2 * (chunk_size / 5));
         if(min_div_size % 2 != 0)
         {
             ++min_div_size;
-        }
-
-        if (d_bound <= 2 * min_div_size)
-        {
-            return;
         }
 
         std::uniform_int_distribution dist(min_div_size, d_bound - min_div_size);
@@ -76,7 +71,7 @@ struct DungeonRect
         sf::Vector2i bounds = rect.size;
         sf::Vector2i offset = rect.position;
 
-        long long min_div_size = std::min(dungeon_min, chunk_size / 5);
+        long long min_div_size = std::min(dungeon_min, 2 * (chunk_size / 5));
         if(min_div_size % 2 != 0)
         {
             ++min_div_size;
@@ -84,14 +79,17 @@ struct DungeonRect
 
         if (horizontal)
         {
-            if (split_pos <= offset.y || split_pos >= offset.y + bounds.y)
+            // Global to local conversion
+            int local_split = split_pos - offset.y;
+
+            if (local_split <= min_div_size || bounds.y - local_split <= min_div_size)
             {
-                return;   
+                return;
             }
 
-            sf::IntRect l_rect{offset, sf::Vector2i(bounds.x, split_pos)};
-            sf::IntRect r_rect{sf::Vector2i(offset.x, offset.y + split_pos),
-                               sf::Vector2i(bounds.x, bounds.y - split_pos)};
+            sf::IntRect l_rect{offset, sf::Vector2i(bounds.x, local_split)};
+            sf::IntRect r_rect{sf::Vector2i(offset.x, offset.y + local_split),
+                            sf::Vector2i(bounds.x, bounds.y - local_split)};
 
             left = std::make_shared<DungeonRect>();
             left->rect = l_rect;
@@ -101,14 +99,16 @@ struct DungeonRect
         }
         else
         {
-            if (split_pos <= offset.x || split_pos >= offset.x + bounds.x)
+            int local_split = split_pos - offset.x;
+
+            if (local_split <= min_div_size || bounds.x - local_split <= min_div_size)
             {
                 return;
             }
 
-            sf::IntRect l_rect{offset, sf::Vector2i(split_pos, bounds.y)};
-            sf::IntRect r_rect{sf::Vector2i(offset.x + split_pos, offset.y),
-                               sf::Vector2i(bounds.x - split_pos, bounds.y)};
+            sf::IntRect l_rect{offset, sf::Vector2i(local_split, bounds.y)};
+            sf::IntRect r_rect{sf::Vector2i(offset.x + local_split, offset.y),
+                           sf::Vector2i(bounds.x - local_split, bounds.y)};
 
             left = std::make_shared<DungeonRect>();
             left->rect = l_rect;
@@ -128,52 +128,43 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
     }
 
     std::array<sf::Vector2i, 4> dirs = {sf::Vector2i(1, 0), {0, 1}, {-1, 0}, {0, -1}};
-    std::vector<std::shared_ptr<DungeonRect>> d_rects;
-    std::shared_ptr<DungeonRect> root = std::make_shared<DungeonRect>();
-    root->rect = sf::IntRect({0, 0}, {static_cast<int>(chunk_size), static_cast<int>(chunk_size)});
-    d_rects.push_back(root);
-
+    std::shared_ptr<Chunk> n_chunk = std::make_shared<Chunk>();
+    
     for(int i = 0; i < 4; ++i)
     {
         sf::Vector2<std::int64_t> adjacent = {position.x + dirs[i].x, position.y + dirs[i].y};
-        std::vector<std::shared_ptr<DungeonRect>> buffer;
+        if(abs(adjacent.x) > dungeon_size.x && abs(adjacent.y) > dungeon_size.y)
+        {
+            continue;
+        }
 
         //get exit random device
         std::size_t exit_seed = std::hash<std::string>{}(get_edge_hash(position, adjacent, dungeon_seed, dungeon_size));
         std::mt19937 rd_dev(exit_seed);
-        std::uniform_int_distribution<std::uint32_t> dist(std::min(dungeon_min, chunk_size / 5),
-                                                          chunk_size - std::min(dungeon_min, chunk_size / 5));
-        int split_d = dist(rd_dev);
-        for(auto& rect : d_rects)
+        std::uniform_int_distribution<std::uint32_t> dist(std::min(dungeon_min, 2 * (chunk_size / 5)),
+                                                          chunk_size - std::min(dungeon_min, 2 * (chunk_size / 5)));
+        int exit_pos = dist(rd_dev);
+        std::shared_ptr<Room> n_exit = std::make_shared<Room>();
+
+        if(dirs[i].x != 0)
         {
-            if(!rect->left && !rect->right)
-            {
-                bool horizontal = (dirs[i].y != 0);
-                rect->divide_along(split_d, horizontal, chunk_size);
-                if(rect->left)
-                {
-                    buffer.push_back(rect->left);
-                }
-                if(rect->right)
-                {
-                    buffer.push_back(rect->right);
-                }
-            }
+            n_exit->position.x = (dirs[i].x > 0) ? chunk_size - 1 : 0;
+            n_exit->position.y = exit_pos;
+        }
+        else if(dirs[i].y != 0)
+        {
+            n_exit->position.x = exit_pos;
+            n_exit->position.y = (dirs[i].y > 0) ? chunk_size - 1 : 0;
         }
 
-        for(auto& b : buffer)
-        {
-            d_rects.push_back(b);
-        }
+        n_chunk->rooms.push_back(n_exit);
     }
 
     std::queue<std::shared_ptr<DungeonRect>> q;
-    for(auto& rect : d_rects)
-    {
-        q.push(rect);
-    }
-    
-    std::shared_ptr<Chunk> n_chunk = std::make_shared<Chunk>();
+    std::shared_ptr<DungeonRect> root = std::make_shared<DungeonRect>();
+    root->rect = sf::IntRect({0, 0}, {static_cast<int>(chunk_size), static_cast<int>(chunk_size)});
+    q.push(root);
+
     std::stringstream chunk_hash;
     chunk_hash << "Chunk_x" << position.x << "_y_" << position.y << "_Seed_" << dungeon_seed << "_"
                << "DungeonSize_" << dungeon_size.x << "_" << dungeon_size.y << "__";
