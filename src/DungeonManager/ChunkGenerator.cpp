@@ -7,6 +7,8 @@
 #include <sstream>
 #include <cmath>
 
+#include <iostream>
+
 constexpr unsigned int dungeon_min = 6u;
 
 ChunkGenerator::ChunkGenerator(unsigned int chunk_size, sf::Vector2u dungeon_size, std::size_t dungeon_seed)
@@ -160,10 +162,10 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
         n_chunk->rooms.push_back(n_exit);
     }
 
-    std::queue<std::shared_ptr<DungeonRect>> q;
+    std::queue<std::tuple<std::shared_ptr<DungeonRect>, bool>> q;
     std::shared_ptr<DungeonRect> root = std::make_shared<DungeonRect>();
     root->rect = sf::IntRect({0, 0}, {static_cast<int>(chunk_size), static_cast<int>(chunk_size)});
-    q.push(root);
+    q.push({root, false});
 
     std::stringstream chunk_hash;
     chunk_hash << "Chunk_x" << position.x << "_y_" << position.y << "_Seed_" << dungeon_seed << "_"
@@ -174,19 +176,58 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
 
     while(!q.empty())
     {
-        std::shared_ptr<DungeonRect>& d = q.front();
+        auto& [d, visited] = q.front();
 
-        if(!d->left && !d->right)
+        if(visited && d->left && d->right)
+        {
+            auto sign = [](int v){if(v > 0) return 1; else if(v < 0) return -1; return 0;};
+            sf::Vector2i l = d->left->rect.getCenter();
+            sf::Vector2i r = d->right->rect.getCenter();
+            std::cout << "L " << l.x << ' ' << l.y << '\n';
+            std::cout << "R " << r.x << ' ' << r.y << '\n';
+            sf::Vector2i dir = {sign(l.x - r.x), sign(l.y - r.y)};
+            sf::Vector2i pos = l;
+
+            int dx = sign(r.x - pos.x);
+            while (pos.x != r.x)
+            {
+                pos.x += dx;
+                auto n_corr = std::make_shared<Corridor>();
+                n_corr->position = {static_cast<unsigned int>(pos.x), static_cast<unsigned int>(pos.y)};
+                n_corr->vertical = false;
+                n_chunk->rooms.push_back(n_corr);
+            }
+
+            int dy = sign(r.y - pos.y);
+            while (pos.y != r.y)
+            {
+                pos.y += dy;
+                auto n_corr = std::make_shared<Corridor>();
+                n_corr->position = {static_cast<unsigned int>(pos.x), static_cast<unsigned int>(pos.y)};
+                n_corr->vertical = true;
+                n_chunk->rooms.push_back(n_corr);
+            }
+
+            q.pop();
+            continue;
+        }
+
+        if(!d->left && !d->right && !visited)
         {
             d->divide(rd_dev, (bern_dist(rd_dev) > 0.5 ? sf::Vector2i(1, 0) : sf::Vector2i(0, 1)), chunk_size);
         }
+        else if(visited)
+        {
+            q.pop();
+            continue;
+        }
         if(d->left)
         {
-            q.push(d->left);
+            q.push({d->left, false});
         }
         if(d->right)
         {
-            q.push(d->right);
+            q.push({d->right, false});
         }
         if(!d->left && !d->right)
         {
@@ -197,8 +238,9 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
             n_chunk->rooms.push_back(n_room);
         }
 
-        q.pop();
+        visited = true;
     }
 
+    std::cout << "Gen ended\n";
     return n_chunk;
 }

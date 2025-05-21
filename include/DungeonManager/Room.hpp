@@ -17,6 +17,7 @@ class Room
     std::vector<sf::Vector2i> exits;
     RoomType type;
     Room(sf::Vector2u pos = {0, 0}, std::vector<sf::Vector2i> exits = {});
+    virtual ~Room() = default;
 };
 
 class Corridor : public Room
