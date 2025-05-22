@@ -251,39 +251,27 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
                     n_corr->vertical = true;
                     n_chunk->rooms.push_back(n_corr);
                 }
+            }
 
-                const sf::Vector2u rect_cnt = {static_cast<unsigned int>(n_room->position.x),
-                                                static_cast<unsigned int>(n_room->position.y)};
-                for(int i = 0; i < exit_closest.size(); i++)
+            const sf::Vector2u rect_cnt = {static_cast<unsigned int>(d->rect.getCenter().x),
+                                            static_cast<unsigned int>(d->rect.getCenter().y)};
+            for(int i = 0; i < exit_closest.size(); i++)
+            {
+                auto& [e, r, c_min] = exit_closest[i];
+
+                int dx = std::abs(static_cast<int>(rect_cnt.x) - static_cast<int>(e.x));
+                int dy = std::abs(static_cast<int>(rect_cnt.y) - static_cast<int>(e.y));
+
+                int dist = (e.x == 0 || e.x == chunk_size - 1) ? dy : dx;
+
+                if(dist < c_min)
                 {
-                    auto& [e, r, c_min] = exit_closest[i];
-
-                    int dx = std::abs(static_cast<int>(rect_cnt.x) - static_cast<int>(e.x));
-                    int dy = std::abs(static_cast<int>(rect_cnt.y) - static_cast<int>(e.y));
-
-                    int dist = dx + dy;
-
-                    //should be made into a function or something
-                    long long min_div_size = std::min(dungeon_min, 2 * (chunk_size / 5));
-                    if(min_div_size % 2 != 0)
-                    {
-                        ++min_div_size;
-                    }
-
-                    if(dist < c_min && dx >= min_div_size / 2 && dy >= min_div_size / 2)
-                    {
-                        r = rect_cnt;
-                        c_min = dist;
-                    }
+                    r = rect_cnt;
+                    c_min = dist;
                 }
             }
             q.pop();
             continue;
-        }
-
-        //check if closest to exits
-        if(auto is_corridor = std::dynamic_pointer_cast<Corridor>(n_room))
-        {
         }
 
         visited = true;
@@ -320,18 +308,48 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
 
         std::shared_ptr<Room> room;
         sf::Vector2i pos = {static_cast<int>(e_pos.x), static_cast<int>(e_pos.y)};
+        bool do_end = false;
+        auto is_corrior = [&](){return std::find_if(n_chunk->rooms.begin(), n_chunk->rooms.end(),
+                                [&](const std::shared_ptr<Room>& r)
+                                {
+                                    return r->position.x == pos.x && r->position.y == pos.y;
+                                }) != n_chunk->rooms.end();};
         for(int j = 0; j < j_m; ++j)
         {
             room = std::make_shared<Corridor>();
             auto n_corr = std::dynamic_pointer_cast<Corridor>(room);
             pos += diff1;
+            if(is_corrior()) do_end = true;
             n_corr->position = {static_cast<unsigned int>(pos.x), static_cast<unsigned int>(pos.y)};
             n_corr->vertical = do_ver;
             n_chunk->rooms.push_back(n_corr);
+            if(do_end)
+            {
+                auto ro = std::find_if(n_chunk->rooms.begin(), n_chunk->rooms.end(),
+                                [&](const std::shared_ptr<Room>& r)
+                                {
+                                    return r->position.x == pos.x && r->position.y == pos.y;
+                                });
+                if(ro != n_chunk->rooms.end())
+                {
+                    if(std::dynamic_pointer_cast<Corridor>(*ro))
+                        break;
+                    else
+                    {
+                        n_chunk->rooms.erase(n_chunk->rooms.end() - 1);
+                        break;
+                    }
+                }
+
+            };
         }
 
         do_ver = !do_ver;
-        if(pos.x != r_pos.x || pos.y != r_pos.y)
+        if(std::find_if(n_chunk->rooms.begin(), n_chunk->rooms.end(),
+                                [&](const std::shared_ptr<Room>& r)
+                                {
+                                    return r->position.x == pos.x && r->position.y == pos.y;
+                                }) == n_chunk->rooms.end() - 1)
         {
             sf::Vector2u u_pos = {static_cast<unsigned int>(pos.x), static_cast<unsigned int>(pos.y)};
             n_chunk->rooms.back() = std::make_shared<Room>(u_pos);
@@ -342,6 +360,8 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
             room = std::make_shared<Corridor>();
             auto n_corr = std::dynamic_pointer_cast<Corridor>(room);
             pos += diff2;
+            if(is_corrior()) do_end = true;
+            if(do_end) break;
             n_corr->position = {static_cast<unsigned int>(pos.x), static_cast<unsigned int>(pos.y)};
             n_corr->vertical = do_ver;
             n_chunk->rooms.push_back(n_corr);
