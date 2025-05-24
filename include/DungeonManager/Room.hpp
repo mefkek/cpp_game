@@ -24,5 +24,5 @@ class Corridor : public Room
     public:
     bool vertical;
     bool intersection;
-    Corridor(bool is_vertical, Room::RoomType type = Room::RoomType::Empty);
+    Corridor(bool is_vertical, Room::RoomType type = Room::RoomType::Empty, std::vector<sf::Vector2i> exits = {});
 };

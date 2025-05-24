@@ -8,6 +8,8 @@
 #include <cmath>
 #include <limits>
 
+
+#include <iostream>
 constexpr int dungeon_min = 6u;
 
 ChunkGenerator::ChunkGenerator(unsigned int chunk_size, sf::Vector2u dungeon_size, std::size_t dungeon_seed)
@@ -126,6 +128,9 @@ struct DungeonRect
 /// @retval std::shared_ptr<Chunk> n_chunk
 std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> position)
 {
+    //helper for vector "normalization"
+    auto sign = [](int v){if(v > 0) return 1; else if(v < 0) return -1; return 0;};
+
     //check if position is valid
     if(abs(position.x) > dungeon_size.x || abs(position.y) > dungeon_size.y)
     {
@@ -155,21 +160,24 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
                                                           chunk_size_i - std::min(dungeon_min, 2 * (chunk_size_i / 5)));
         int exit_pos = dist(rd_dev);
         sf::Vector2i n_pos;
+        sf::Vector2i exit;
 
         if(dirs[i].x != 0)
         {
             n_pos.x = (dirs[i].x > 0) ? chunk_size_i - 1 : 0;
             n_pos.y = exit_pos;
             exit_closest.push_back({n_pos, {0, 0}, std::numeric_limits<int>().max()});
+            exit = {(n_pos.x == 0 ? 1 : -1), 0}; 
         }
         else if(dirs[i].y != 0)
         {
             n_pos.x = exit_pos;
             n_pos.y = (dirs[i].y > 0) ? chunk_size_i - 1 : 0;
             exit_closest.push_back({n_pos, {0, 0}, std::numeric_limits<int>().max()});
+            exit = {0, (n_pos.y == 0 ? 1 : -1)};
         }
 
-        n_chunk->rooms[n_pos.x][n_pos.y] = std::make_shared<Room>();
+        n_chunk->rooms[n_pos.x][n_pos.y] = std::make_shared<Room>(Room::RoomType::Empty, std::vector{exit});
     }
 
     //prapare queue for room generation
@@ -187,9 +195,6 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
     std::size_t chunk_seed = std::hash<std::string>{}(chunk_hash.str());
     std::mt19937 rd_dev(chunk_seed);
     std::bernoulli_distribution bern_dist(0.5);
-
-    //helper for vector "normalization"
-    auto sign = [](int v){if(v > 0) return 1; else if(v < 0) return -1; return 0;};
     
     auto is_too_close= [&](sf::Vector2i pos)
     {
@@ -266,9 +271,10 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
 
         if(!visited)
         {
+            visited = true;
             if(!d->left && !d->right)
             {
-                //dicide if not visited
+                //divide if not visited
                 d->divide(rd_dev, (bern_dist(rd_dev) > 0.5 ? sf::Vector2i(1, 0) : sf::Vector2i(0, 1)), chunk_size_i);
             }
             if(d->left)
@@ -294,26 +300,43 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
                 sf::Vector2i r = d->right->rect.getCenter();
                 sf::Vector2i dir = {sign(l.x - r.x), sign(l.y - r.y)};
                 sf::Vector2i pos = l;
+                sf::Vector2i last_pos = pos;
 
                 int dx = sign(r.x - pos.x);
                 while (pos.x != r.x)
                 {
                     pos.x += dx;
-                    n_chunk->rooms[pos.x][pos.y] = std::make_shared<Corridor>(false);
+                    auto corridor = std::make_shared<Corridor>(false, Room::RoomType::Empty, std::vector<sf::Vector2i>{});
+                    n_chunk->rooms[pos.x][pos.y] = corridor;
+
+                    sf::Vector2i step_dir = pos - last_pos;
+                    if (n_chunk->rooms[last_pos.x][last_pos.y])
+                    {
+                        n_chunk->rooms[last_pos.x][last_pos.y]->exits.push_back(step_dir);
+                    }
+                    corridor->exits.push_back(-step_dir);
+                    last_pos = pos;
                 }
 
                 int dy = sign(r.y - pos.y);
                 while (pos.y != r.y)
                 {
                     pos.y += dy;
-                    n_chunk->rooms[pos.x][pos.y] = std::make_shared<Corridor>(true);
-                }
+                    auto corridor = std::make_shared<Corridor>(true, Room::RoomType::Empty, std::vector<sf::Vector2i>{});
+                    n_chunk->rooms[pos.x][pos.y] = corridor;
+
+                    sf::Vector2i step_dir = pos - last_pos;
+                    if (n_chunk->rooms[last_pos.x][last_pos.y])
+                    {
+                        n_chunk->rooms[last_pos.x][last_pos.y]->exits.push_back(step_dir);
+                    }
+                    corridor->exits.push_back(-step_dir);
+                    last_pos = pos;
+                }   
             }
             q.pop();
             continue;
         }
-
-        visited = true;
     }
 
     //rewrite this later
@@ -352,10 +375,10 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
             do_ver = false;
             j_m = std::abs(dx);
             k_m = std::abs(dy) - 1;
-            diff1.x = std::abs(dx)/dx;
+            diff1.x = sign(dx);
             diff1.y = 0;
             diff2.x = 0;
-            diff2.y = std::abs(dy)/dy;
+            diff2.y = sign(dy);
         }
         else
         {
@@ -363,25 +386,27 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
             j_m = std::abs(dy);
             k_m = std::abs(dx) - 1;
             diff1.x = 0;
-            diff1.y = std::abs(dy)/dy;
-            diff2.x = std::abs(dx)/dx;
+            diff1.y = sign(dy);
+            diff2.x = sign(dx);
             diff2.y = 0;
         }
 
         std::shared_ptr<Room> room;
         sf::Vector2i pos = {e_pos.x, e_pos.y};
-        std::shared_ptr<Room> last_placed;
+        std::shared_ptr<Room> last_placed = n_chunk->rooms[pos.x][pos.y];
         for(int j = 0; j < j_m; ++j)
         {
             pos += diff1;
-            if(n_chunk->rooms[pos.x][pos.y])
+            if(auto r = n_chunk->rooms[pos.x][pos.y])
             {
-                n_chunk->rooms[pos.x][pos.y]->exits.emplace_back(-diff1);   //append an exit
+                r->exits.push_back(-diff1);
                 end = true;
                 break;
             }
+            last_placed->exits.push_back(-diff1);
             n_chunk->rooms[pos.x][pos.y] = std::make_shared<Corridor>(do_ver);
             last_placed = n_chunk->rooms[pos.x][pos.y];
+            last_placed->exits.push_back(diff1);
         }
 
         if(end)
@@ -392,18 +417,58 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
         do_ver = !do_ver;
         if(last_placed == n_chunk->rooms[pos.x][pos.y])
         {
-            n_chunk->rooms[pos.x][pos.y] = std::make_shared<Room>(Room::RoomType::Empty, std::vector{-diff1, -diff2});
+            std::vector<sf::Vector2i> n_exits;
+            for(auto& ex : last_placed->exits)
+            {
+                n_exits.push_back(-ex);
+            }
+            n_chunk->rooms[pos.x][pos.y] = std::make_shared<Room>(Room::RoomType::Empty, n_exits);
+            n_chunk->rooms[pos.x][pos.y]->exits.push_back(diff2);
         }
 
         for(int k = 0; k < k_m; ++k)
         {
             pos += diff2;
-            if(n_chunk->rooms[pos.x][pos.y])
+            if(auto r = n_chunk->rooms[pos.x][pos.y])
             {
-                n_chunk->rooms[pos.x][pos.y]->exits.emplace_back(-diff2);   //append an exit
+                r->exits.push_back(-diff2);
                 break;
             }
+
+            if(last_placed)
+            {   
+                last_placed->exits.push_back(-diff2);
+            }
             n_chunk->rooms[pos.x][pos.y] = std::make_shared<Corridor>(do_ver);
+            last_placed = n_chunk->rooms[pos.x][pos.y];
+            last_placed->exits.push_back(diff2);
+        }
+    }
+
+    for(auto& [dx, row] : n_chunk->rooms)
+    {
+        for(auto& [dy, room] : row)
+        {
+            if(std::dynamic_pointer_cast<Corridor>(room))
+            {
+                continue;
+            }
+
+            for(auto d : dirs)
+            {
+                sf::Vector2i n_dir = {dx + d.x, dy + d.y};
+                if(n_chunk->rooms.count(n_dir.x) &&n_chunk->rooms[n_dir.x].count(n_dir.y))
+                {
+                    for(auto e : n_chunk->rooms[n_dir.x][n_dir.y]->exits)
+                    {
+                        if(dx == n_dir.x + e.x && dy == n_dir.y + e.y)
+                        {
+                            if(std::find(room->exits.begin(), room->exits.end(), d) == room->exits.end())
+                            room->exits.push_back(d);
+                        }
+                    }
+                }
+            }
         }
     }
 
