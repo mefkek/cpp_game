@@ -38,35 +38,63 @@ void DungeonManager::display_chunk(std::shared_ptr<Chunk> debug)
 
         static std::vector<std::shared_ptr<sf::Drawable>> debug_drawables;
         debug_drawables.clear();
-        for (auto& room : debug->rooms)
+        for (const auto& [pos_x, row] : debug->rooms)
         {
-            sf::Vector2f n_pos;
-            n_pos.x = pos.x + room->position.x * room_size.x;
-            n_pos.y = pos.y + (chunk_size - 1 - room->position.y) * room_size.y;
-
-            std::shared_ptr<sf::RectangleShape> room_rect = std::make_shared<sf::RectangleShape>(room_size);
-            room_rect->setPosition(n_pos);
-            if (auto r = std::dynamic_pointer_cast<Corridor>(room))
+            for(const auto& [pos_y, room] : row)
             {
-                room_rect->setFillColor(sf::Color::Yellow);
-                if (r->vertical)
-                {
-                    room_rect->setScale({ 0.4f, 1.f });
-                }
-                else
-                {
-                    room_rect->setScale({ 1.f, 0.4f });
-                }
-                room_rect->setOrigin(room_rect->getGeometricCenter());
-            }
-            else
-            {
-                room_rect->setFillColor(sf::Color::Green);
-                room_rect->setOrigin(room_rect->getGeometricCenter());
-            }
+                float r_pos_x = pos.x + pos_x * room_size.x;
+                float r_pos_y = pos.y + (chunk_size - 1 - pos_y) * room_size.y;
 
-            debug_drawables.emplace_back(room_rect);
-            Application::instance().get_manager<RenderManager>()->add_drawable("ddun", room_rect);
+                std::shared_ptr<sf::RectangleShape> room_rect = std::make_shared<sf::RectangleShape>(room_size);
+                room_rect->setPosition({r_pos_x, r_pos_y});
+                if (auto r = std::dynamic_pointer_cast<Corridor>(room))
+                {
+                    room_rect->setFillColor(sf::Color::Yellow);
+                    if (r->vertical)
+                    {
+                        room_rect->setScale({ 0.4f, 1.f });
+                    }
+                    else
+                    {
+                        room_rect->setScale({ 1.f, 0.4f });
+                    }
+                    room_rect->setOrigin(room_rect->getGeometricCenter());
+                }
+                else if(std::dynamic_pointer_cast<Room>(room))
+                {
+                    room_rect->setFillColor(sf::Color::Green);
+                    room_rect->setOrigin(room_rect->getGeometricCenter());
+                }
+
+                if(room_rect)
+                {
+                    debug_drawables.emplace_back(room_rect);
+                    Application::instance().get_manager<RenderManager>()->add_drawable("ddun", room_rect);
+                    for(auto exit : room->exits)
+                    {
+                        auto ex_shape = std::make_shared<sf::CircleShape>(room_size.x * 0.1f);
+                        if(std::dynamic_pointer_cast<Corridor>(room))
+                        {
+                            ex_shape->setFillColor(sf::Color::Blue);
+                        }
+                        else
+                        {
+                            ex_shape->setScale({2.f, 2.f});
+                            ex_shape->setFillColor(sf::Color::Red);
+                        }
+                        ex_shape->setOrigin({ex_shape->getRadius(), ex_shape->getRadius()});
+
+                        sf::Vector2f center = room_rect->getPosition();
+                        sf::Vector2f offset(exit.x * room_rect->getSize().x / 2.f,exit.y* room_rect->getSize().y / 2.f);
+                        sf::Vector2f final_pos = center + offset;
+
+                        ex_shape->setPosition(final_pos);
+
+                        debug_drawables.push_back(ex_shape);
+                        Application::instance().get_manager<RenderManager>()->add_drawable("ddun", ex_shape);
+                    }
+                }
+            }
         }
     }
 }
