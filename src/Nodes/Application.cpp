@@ -28,6 +28,8 @@ void Application::initialize()
 
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
     get_manager<RenderManager>()->add_layer("ddun", 1, {1920u, 1240u});
+    get_manager<RenderManager>()->add_layer("ddun_e_r", 2, {1920u, 1240u});
+    get_manager<RenderManager>()->add_layer("ddun_e_c", 3, {1920u, 1240u});
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
     get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps->text));
 
@@ -40,36 +42,27 @@ void Application::initialize()
         {
             if(e.scancode == sf::Keyboard::Scancode::Enter)
             {
-                Logger::log(Logger::MessageType::Info, "Chunk: ", chunkcoords.x, " ", chunkcoords.y);
                 get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->chunk_getter->operator()(chunkcoords));
             }
             else if(e.scancode == sf::Keyboard::Scancode::Up)
             {
                 ++chunkcoords.y;
                 get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->chunk_getter->operator()(chunkcoords));
-                Logger::log(Logger::MessageType::Info, "Chunk: ", chunkcoords.x, " ", chunkcoords.y);
-
             }
             else if(e.scancode == sf::Keyboard::Scancode::Down)
             {
                 --chunkcoords.y;
                 get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->chunk_getter->operator()(chunkcoords));
-                Logger::log(Logger::MessageType::Info, "Chunk: ", chunkcoords.x, " ", chunkcoords.y);
-
             }
             else if(e.scancode == sf::Keyboard::Scancode::Right)
             {
                 ++chunkcoords.x;
                 get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->chunk_getter->operator()(chunkcoords));
-                Logger::log(Logger::MessageType::Info, "Chunk: ", chunkcoords.x, " ", chunkcoords.y);
-
             }
             else if(e.scancode == sf::Keyboard::Scancode::Left)
             {
                 --chunkcoords.x;
                 get_manager<DungeonManager>()->display_chunk(get_manager<DungeonManager>()->chunk_getter->operator()(chunkcoords));
-                Logger::log(Logger::MessageType::Info, "Chunk: ", chunkcoords.x, " ", chunkcoords.y);
-
             }
         });
     //********************************************/

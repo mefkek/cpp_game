@@ -147,7 +147,7 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
     for(int i = 0; i < 4; ++i)
     {
         sf::Vector2<std::int64_t> adjacent = {position.x + dirs[i].x, position.y + dirs[i].y};
-        if(abs(adjacent.x) > dungeon_size.x && abs(adjacent.y) > dungeon_size.y)
+        if(abs(adjacent.x) > dungeon_size.x || abs(adjacent.y) > dungeon_size.y)
         {
             //skip if no exit
             continue;
@@ -177,7 +177,15 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
             exit = {0, (n_pos.y == 0 ? 1 : -1)};
         }
 
-        n_chunk->rooms[n_pos.x][n_pos.y] = std::make_shared<Room>(Room::RoomType::Empty, std::vector{exit});
+        if(n_pos.x == 0 || n_pos.y == 0)
+        {
+            bool vertical = n_pos.y == 0;
+            n_chunk->rooms[n_pos.x][n_pos.y] = std::make_shared<Corridor>(vertical, Room::RoomType::Empty, std::vector{exit});
+        }
+        else
+        {
+            n_chunk->rooms[n_pos.x][n_pos.y] = std::make_shared<Room>(Room::RoomType::Empty, std::vector{exit});
+        }
     }
 
     //prapare queue for room generation
@@ -400,6 +408,7 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
             if(auto r = n_chunk->rooms[pos.x][pos.y])
             {
                 r->exits.push_back(-diff1);
+                last_placed->exits.push_back(-diff1);
                 end = true;
                 break;
             }
@@ -421,6 +430,7 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2<std::int64_t> posi
             for(auto& ex : last_placed->exits)
             {
                 n_exits.push_back(-ex);
+                last_placed->exits.push_back(-diff2);
             }
             n_chunk->rooms[pos.x][pos.y] = std::make_shared<Room>(Room::RoomType::Empty, n_exits);
             n_chunk->rooms[pos.x][pos.y]->exits.push_back(diff2);

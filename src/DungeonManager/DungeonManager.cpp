@@ -10,7 +10,7 @@
 void DungeonManager::initialize()
 {
     this->dungeon_seed = 10;    //for debugging only
-    this->dungeon_size = {256, 256};
+    this->dungeon_size = {255, 255};
     this->chunk_size = 32;
 
     chunk_getter = std::make_unique<ChunkGenerator>(chunk_size, dungeon_size, dungeon_seed);
@@ -91,7 +91,14 @@ void DungeonManager::display_chunk(std::shared_ptr<Chunk> debug)
                         ex_shape->setPosition(final_pos);
 
                         debug_drawables.push_back(ex_shape);
-                        Application::instance().get_manager<RenderManager>()->add_drawable("ddun", ex_shape);
+                        if(std::dynamic_pointer_cast<Corridor>(room))
+                        {
+                            Application::instance().get_manager<RenderManager>()->add_drawable("ddun_e_c", ex_shape);
+                        }
+                        else
+                        {
+                            Application::instance().get_manager<RenderManager>()->add_drawable("ddun_e_r", ex_shape);
+                        }
                     }
                 }
             }
