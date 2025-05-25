@@ -4,54 +4,40 @@
 #include <memory>
 #include <algorithm>
 
-ActorManager::ActorManager()
-{
-    // Create the player party as a child of this manager
+void ActorManager::initialize() {
+    // Safe to use shared_from_this() here 
     add_child<Party>();
-    {
-        auto& kids = get_children();
-        // The last child is the one we just added
-        playerParty_ = std::dynamic_pointer_cast<Party>(kids.back());
-    }
+    playerParty_ = std::dynamic_pointer_cast<Party>(get_children().back());
 
-    // Create the enemy party as a child of this manager
     add_child<Party>();
-    {
-        auto& kids = get_children();
-        enemyParty_ = std::dynamic_pointer_cast<Party>(kids.back());
-    }
+    enemyParty_ = std::dynamic_pointer_cast<Party>(get_children().back());
 }
 
 std::shared_ptr<Actor> ActorManager::addActor(
     ActorRaceEnum race,
-    std::shared_ptr<ActorBehaviour> behaviour)
-{
+    std::shared_ptr<ActorBehaviour> behaviour) {
     // 1) Instantiate the actor under this manager
     add_child<Actor>(race, behaviour);
-    std::shared_ptr<Actor> actor;
-    {
-        auto& kids = get_children();
-        actor = std::dynamic_pointer_cast<Actor>(kids.back());
-    }
+    std::weak_ptr<Actor> actor = std::dynamic_pointer_cast<Actor>(get_children().back());
 
-    // 2) Determine whether this actor is an enemy based on race
+    // 2) Determine whether this actor is an enemy
     const bool isEnemy =
-        race == ActorRaceEnum::Zombie ||
-        race == ActorRaceEnum::Skeleton ||
-        race == ActorRaceEnum::Spider ||
-        race == ActorRaceEnum::Lich;
+            race == ActorRaceEnum::Zombie ||
+            race == ActorRaceEnum::Skeleton ||
+            race == ActorRaceEnum::Spider ||
+            race == ActorRaceEnum::Lich;
 
-    // 3) Add the same actor into the appropriate party
+    // 3) Attach the same actor into the appropriate party
     auto targetParty = isEnemy ? enemyParty_ : playerParty_;
-    if (targetParty) {
-        targetParty->add_child<Actor>(race, behaviour);
+    if (auto party = targetParty) {
+        // Push directly into party's children vector 
+        party->get_children().push_back(actor.lock());
     } else {
-        // Fallback warning if for some reason the party pointer is null
         Logger::log(Logger::MessageType::Warning,
-                    "ActorManager: target party not initialized for race ",
+                    "ActorManager",
+                    "target party not initialized for race ",
                     static_cast<int>(race));
     }
 
-    return actor;
+    return actor.lock();
 }
-

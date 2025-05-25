@@ -54,8 +54,4 @@ std::ostream& operator<<(std::ostream& os, const std::shared_ptr<Node>& n)
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, std::shared_ptr<Node>& n)
-{
-    return os << static_cast<const std::shared_ptr<Node>&>(n);
-}
 

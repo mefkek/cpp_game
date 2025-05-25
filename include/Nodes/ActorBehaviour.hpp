@@ -1,13 +1,15 @@
 #pragma once
 
-#include "Actor.hpp"
-class  Actor;
-// Defines per-frame behavior for an Actor.
-class ActorBehaviour
-{
+#include <memory>
+class Actor;
+
+// Defines behavior for an Actor; takes a weak_ptr to avoid
+// forcing ownership and prevent dangling references.
+class ActorBehaviour {
 public:
     virtual ~ActorBehaviour() = default;
 
-    // Called each frame to drive the actor’s logic.
-    virtual void behave(Actor& actor) = 0;
+    // Perform behavior on the given actor.
+    // The actor pointer must be locked before use.
+    virtual void behave(std::weak_ptr<Actor> actor_wp) = 0;
 };
