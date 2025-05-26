@@ -4,16 +4,16 @@
 
 class TextureAtlas {
 public:
-    TextureAtlas(const std::filesystem::path&);
+    TextureAtlas(const std::filesystem::path&, sf::Vector2i tile_size = {16, 16});
 
-    // Here add a logger message if texture not found
+    void set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::IntRect rect);
+    void set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::Vector2i cords);
 
-    void set_rect(const std::unique_ptr<sf::Sprite>& sprite, sf::IntRect rect);
-
-    const std::unique_ptr<sf::Texture>& get_texture();
+    const sf::Texture& get_texture();
 
 private:
-    std::unique_ptr<sf::Texture> text;
+    std::unique_ptr<sf::Texture> tex;
+    sf::Vector2i tile_size;
 };
 
 

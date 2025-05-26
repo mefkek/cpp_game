@@ -1,18 +1,40 @@
 #include "Nodes/TextureAtlas.hpp"
 
-TextureAtlas::TextureAtlas(const std::filesystem::path& filepath) {
-    text = std::make_unique<sf::Texture>();
-    if (!text->loadFromFile(filepath)) {
+TextureAtlas::TextureAtlas(const std::filesystem::path& filepath, sf::Vector2i tile_size) : tile_size(tile_size) {
+    tex = std::make_unique<sf::Texture>();
+    if (!tex->loadFromFile(filepath)) {
         throw std::runtime_error("Failed to load texture atlas from: " + filepath.string());   // temporary without logger
     }
 }
-void TextureAtlas::set_rect(const std::unique_ptr<sf::Sprite>& sprite, sf::IntRect rect) {
-    if (!sprite) {
-        sprite -> setTexture(*text);
-        sprite -> setTextureRect(rect);
+void TextureAtlas::set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::IntRect rect) {
+    if (!sprite)
+    {
+        sprite = std::make_shared<sf::Sprite>(*tex);
     }
+    else
+    {
+        sprite->setTexture(*tex);
+    }
+    sprite -> setTexture(*tex);
+    sprite -> setTextureRect(rect);
 }
-const std::unique_ptr<sf::Texture>& TextureAtlas::get_texture(){return text;}
+void TextureAtlas::set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::Vector2i cords)
+{
+    if(!sprite)
+    {
+        sprite = std::make_shared<sf::Sprite>(*tex);
+    }
+    else
+    {
+        sprite->setTexture(*tex);
+    }
+
+    cords.x *= tile_size.x;
+    cords.y *= tile_size.y;
+    sf::IntRect tex_rect = {cords, tile_size};
+    sprite->setTextureRect(tex_rect);
+}
+const sf::Texture& TextureAtlas::get_texture(){return *tex;}
 
 
 
