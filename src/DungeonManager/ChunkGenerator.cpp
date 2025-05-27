@@ -24,8 +24,8 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2i position)
     //check if position is valid
     if(abs(position.x) > dungeon_size.x || abs(position.y) > dungeon_size.y)
     {
-        const std::string msg = "Chunk at position: " + std::to_string(position.x) + ", " + std::to_string(position.y) +
-                                " is out of range";
+        const std::string msg = "Chunk at position: " + std::to_string(position.x) + ", " +
+                                std::to_string(position.y) + " is out of range";
         throw std::runtime_error(msg);
     }
 
@@ -35,7 +35,7 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2i position)
     //generate 4 exits
     generate_exits(position, dungeon_size, dungeon_seed, chunk_size, exit_closest, n_chunk);
 
-    //get chunk hash and radnom device
+    //get chunk hash and random device
     std::stringstream chunk_hash;
     chunk_hash << "Chunk_x" << position.x << "_y_" << position.y << "_Seed_" << dungeon_seed << "_"
                << "DungeonSize_" << dungeon_size.x << "_" << dungeon_size.y << "__";
@@ -44,7 +44,7 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2i position)
     
     auto is_too_close= [&](sf::Vector2i pos)
     {
-        int valid_range = std::min(dungeon_min, 2 * (chunk_size / 5));
+        int valid_range = get_min_separation(chunk_size);
         int half_range = valid_range/ 2;
 
         for (int dx = -half_range; dx <= half_range; ++dx)
@@ -99,7 +99,7 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2i position)
         int offset_from_axis = is_vertical_exit ? dy : dx;
 
 
-        if (offset_from_axis != 0 && offset_from_axis < std::min(dungeon_min, 2 * (chunk_size / 5)) / 2  && !is_fallback)
+        if (offset_from_axis != 0 && offset_from_axis < get_min_separation(chunk_size) / 2  && !is_fallback)
         {
             return;
         }

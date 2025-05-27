@@ -1,12 +1,12 @@
 #include "DungeonManager/Utils/DungeonRect.hpp"
 
-void DungeonRect::divide(std::mt19937 &rd_dev, sf::Vector2i division_axis, unsigned int chunk_size)
+void DungeonRect::divide(std::mt19937 &rd_dev, sf::Vector2i division_axis, int chunk_size)
 {
     sf::Vector2i bounds = rect.size;
     sf::Vector2i offset = rect.position;
 
     unsigned int d_bound = (division_axis.x != 0) ? rect.size.x : rect.size.y;
-    long long min_div_size = std::min(dungeon_min, 2 * (static_cast<int>(chunk_size) / 5));
+    long long min_div_size = get_min_separation(chunk_size);
     if (min_div_size % 2 != 0)
     {
         ++min_div_size;
@@ -33,12 +33,12 @@ void DungeonRect::divide(std::mt19937 &rd_dev, sf::Vector2i division_axis, unsig
     }
 }
 
-void DungeonRect::divide_along(int split_pos, bool horizontal, unsigned int chunk_size)
+void DungeonRect::divide_along(int split_pos, bool horizontal, int chunk_size)
 {
     sf::Vector2i bounds = rect.size;
     sf::Vector2i offset = rect.position;
 
-    long long min_div_size = std::min(dungeon_min, 2 * (static_cast<int>(chunk_size) / 5));
+    long long min_div_size = get_min_separation(chunk_size);
     if (min_div_size % 2 != 0)
     {
         ++min_div_size;

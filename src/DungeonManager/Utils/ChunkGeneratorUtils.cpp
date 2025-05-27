@@ -55,8 +55,8 @@ void generate_exits(sf::Vector2i position, sf::Vector2u dungeon_size, std::size_
         // get exit random device
         std::size_t exit_seed = std::hash<std::string>{}(get_edge_hash(position, adjacent, dungeon_seed, dungeon_size));
         std::mt19937 rd_dev(exit_seed);
-        std::uniform_int_distribution<std::uint32_t> dist(std::min(dungeon_min, 2 * (chunk_size / 5)),
-                                                          chunk_size - std::min(dungeon_min, 2 * (chunk_size / 5)));
+        std::uniform_int_distribution<std::uint32_t> dist(get_min_separation(chunk_size),
+                                                          chunk_size - 2 * get_min_separation(chunk_size));
         int exit_pos = dist(rd_dev);
         sf::Vector2i n_pos;
         sf::Vector2i exit;
@@ -90,14 +90,18 @@ void generate_exits(sf::Vector2i position, sf::Vector2u dungeon_size, std::size_
 
 void generate_internal(std::shared_ptr<Chunk> n_chunk, std::mt19937 &rd_dev, int chunk_size)
 {
-    // prapare queue for room generation
     std::bernoulli_distribution bern(0.5);
+
+    // prapare queue for room generation
     std::queue<std::tuple<std::shared_ptr<DungeonRect>, bool>> q;
     std::shared_ptr<DungeonRect> root = std::make_shared<DungeonRect>();
-    root->rect = sf::IntRect({std::min(dungeon_min, 2 * (chunk_size / 5)), std::min(dungeon_min, 2 * (chunk_size / 5))},
-                             {chunk_size - std::min(dungeon_min, 2 * (chunk_size / 5)),
-                              chunk_size - std::min(dungeon_min, 2 * (chunk_size / 5))}); // change into a constant later
-    q.push({root, false});
+
+    sf::Vector2i d_rect_start_pos = {get_min_separation(chunk_size), get_min_separation(chunk_size)};
+    sf::Vector2i d_rect_size = {chunk_size - 2 * get_min_separation(chunk_size),
+                                chunk_size - 2 * get_min_separation(chunk_size)};
+
+    root->rect = sf::IntRect(d_rect_start_pos, d_rect_size);
+
     q.push({root, false});
 
     while (!q.empty())
@@ -164,10 +168,6 @@ void generate_internal(std::shared_ptr<Chunk> n_chunk, std::mt19937 &rd_dev, int
                     {
                         c_ptr->exits.push_back(dir);
                     }
-                    else
-                    {
-                        c_ptr = std::make_shared<Room>(Room::RoomType::Empty, std::vector{dir});
-                    }
 
                     pos = n_pos;
                 }
@@ -175,10 +175,6 @@ void generate_internal(std::shared_ptr<Chunk> n_chunk, std::mt19937 &rd_dev, int
                 if (auto &r_ptr = n_chunk->rooms[pos.x][pos.y])
                 {
                     r_ptr->exits.push_back(-dir);
-                }
-                else
-                {
-                    r_ptr = std::make_shared<Room>(Room::RoomType::Empty, std::vector{-dir});
                 }
             }
 
