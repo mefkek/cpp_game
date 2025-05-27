@@ -2,8 +2,9 @@
 #include <SFML/Graphics.hpp>
 #include <memory>
 
-class TextureAtlas {
-public:
+class TextureAtlas
+{
+    public:
     TextureAtlas(const std::filesystem::path&, sf::Vector2i tile_size = {16, 16});
 
     void set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::IntRect rect);
@@ -11,7 +12,7 @@ public:
 
     const sf::Texture& get_texture();
 
-private:
+    private:
     std::unique_ptr<sf::Texture> tex;
     sf::Vector2i tile_size;
 };
