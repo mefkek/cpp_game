@@ -1,6 +1,7 @@
 #include "DungeonManager/ChunkGenerator.hpp"
 #include "DungeonManager/Room.hpp"
 #include "DungeonManager/Utils/ChunkGeneratorUtils.hpp"
+#include "DungeonManager/Utils/DungeonRect.hpp"
 #include <SFML/Graphics.hpp>
 #include <algorithm>
 #include <queue>
@@ -9,102 +10,10 @@
 #include <cmath>
 #include <limits>
 
-constexpr int dungeon_min = 6u;
+//constexpr int dungeon_min = 6u; included somewhere else
 
-ChunkGenerator::ChunkGenerator(unsigned int chunk_size, sf::Vector2u dungeon_size, std::size_t dungeon_seed)
+ChunkGenerator::ChunkGenerator(int chunk_size, sf::Vector2u dungeon_size, std::size_t dungeon_seed)
                                : chunk_size(chunk_size), dungeon_size(dungeon_size), dungeon_seed(dungeon_seed) {}
-
-struct DungeonRect
-{
-    sf::IntRect rect;
-    std::shared_ptr<DungeonRect> left;
-    std::shared_ptr<DungeonRect> right;
-
-    void divide(std::mt19937& rd_dev, sf::Vector2i division_axis, unsigned int chunk_size)
-    {
-        sf::Vector2i bounds = rect.size;
-        sf::Vector2i offset = rect.position;
-
-        unsigned int d_bound = (division_axis.x != 0) ? rect.size.x : rect.size.y;
-        long long min_div_size = std::min(dungeon_min, 2 * (static_cast<int>(chunk_size) / 5));
-        if(min_div_size % 2 != 0)
-        {
-            ++min_div_size;
-        }
-
-        std::uniform_int_distribution dist(min_div_size, d_bound - min_div_size);
-        long long d_pos = dist(rd_dev);
-
-        sf::IntRect l_rect;
-        l_rect.position = offset;
-        l_rect.size = (division_axis.x != 0) ? sf::Vector2i(d_pos, bounds.y) : sf::Vector2i(bounds.x, d_pos);
-
-        sf::IntRect r_rect;
-        r_rect.position = {offset.x + (l_rect.size.x * division_axis.x), offset.y + (l_rect.size.y * division_axis.y)};
-        r_rect.size = {bounds.x - (l_rect.size.x * division_axis.x), bounds.y - (l_rect.size.y * division_axis.y)};
-
-        if(l_rect.size.x >= min_div_size && l_rect.size.y >= min_div_size && r_rect.size.x >= min_div_size && r_rect.size.y >= min_div_size)
-        {
-            left = std::make_shared<DungeonRect>();
-            left->rect = l_rect;
-
-            right = std::make_shared<DungeonRect>();
-            right->rect = r_rect;
-        }
-    }
-
-    void divide_along(int split_pos, bool horizontal, unsigned int chunk_size)
-    {
-        sf::Vector2i bounds = rect.size;
-        sf::Vector2i offset = rect.position;
-
-        long long min_div_size = std::min(dungeon_min, 2 * (static_cast<int>(chunk_size) / 5));
-        if(min_div_size % 2 != 0)
-        {
-            ++min_div_size;
-        }
-
-        if (horizontal)
-        {
-            // Global to local conversion
-            int local_split = split_pos - offset.y;
-
-            if (local_split <= min_div_size || bounds.y - local_split <= min_div_size)
-            {
-                return;
-            }
-
-            sf::IntRect l_rect{offset, sf::Vector2i(bounds.x, local_split)};
-            sf::IntRect r_rect{sf::Vector2i(offset.x, offset.y + local_split),
-                            sf::Vector2i(bounds.x, bounds.y - local_split)};
-
-            left = std::make_shared<DungeonRect>();
-            left->rect = l_rect;
-
-            right = std::make_shared<DungeonRect>();
-            right->rect = r_rect;
-        }
-        else
-        {
-            int local_split = split_pos - offset.x;
-
-            if (local_split <= min_div_size || bounds.x - local_split <= min_div_size)
-            {
-                return;
-            }
-
-            sf::IntRect l_rect{offset, sf::Vector2i(local_split, bounds.y)};
-            sf::IntRect r_rect{sf::Vector2i(offset.x + local_split, offset.y),
-                           sf::Vector2i(bounds.x - local_split, bounds.y)};
-
-            left = std::make_shared<DungeonRect>();
-            left->rect = l_rect;
-
-            right = std::make_shared<DungeonRect>();
-            right->rect = r_rect;
-        }
-    }
-};
 
 /// @brief BSP style chunk generator
 /// @param position position of the chunk in a dungeon
@@ -112,9 +21,6 @@ struct DungeonRect
 /// @retval std::shared_ptr<Chunk> n_chunk
 std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2i position)
 {
-    //helper for vector "normalization"
-    auto sign = [](int v){if(v > 0) return 1; else if(v < 0) return -1; return 0;};
-
     //check if position is valid
     if(abs(position.x) > dungeon_size.x || abs(position.y) > dungeon_size.y)
     {
@@ -125,18 +31,9 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2i position)
 
     std::shared_ptr<Chunk> n_chunk = std::make_shared<Chunk>();
     std::vector<std::tuple<sf::Vector2i, sf::Vector2i, int>> exit_closest;
-    const int chunk_size_i = static_cast<int>(chunk_size);
     
     //generate 4 exits
-    generate_exits(position, dungeon_size, dungeon_seed, chunk_size_i, exit_closest, n_chunk);
-
-    //prapare queue for room generation
-    std::queue<std::tuple<std::shared_ptr<DungeonRect>, bool>> q;
-    std::shared_ptr<DungeonRect> root = std::make_shared<DungeonRect>();
-    root->rect = sf::IntRect({std::min(dungeon_min, 2 * (chunk_size_i / 5)), std::min(dungeon_min, 2 * (chunk_size_i / 5))},
-                             {chunk_size_i - std::min(dungeon_min, 2 * (chunk_size_i / 5)),
-                             chunk_size_i - std::min(dungeon_min, 2 * (chunk_size_i / 5))});  //change into a constant later
-    q.push({root, false});
+    generate_exits(position, dungeon_size, dungeon_seed, chunk_size, exit_closest, n_chunk);
 
     //get chunk hash and radnom device
     std::stringstream chunk_hash;
@@ -144,11 +41,10 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2i position)
                << "DungeonSize_" << dungeon_size.x << "_" << dungeon_size.y << "__";
     std::size_t chunk_seed = std::hash<std::string>{}(chunk_hash.str());
     std::mt19937 rd_dev(chunk_seed);
-    std::bernoulli_distribution bern_dist(0.5);
     
     auto is_too_close= [&](sf::Vector2i pos)
     {
-        int valid_range = std::min(dungeon_min, 2 * (chunk_size_i / 5));
+        int valid_range = std::min(dungeon_min, 2 * (chunk_size / 5));
         int half_range = valid_range/ 2;
 
         for (int dx = -half_range; dx <= half_range; ++dx)
@@ -191,7 +87,7 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2i position)
         int dx = std::abs(n_r.x - exit_pos.x);
         int dy = std::abs(n_r.y - exit_pos.y);
 
-        bool is_vertical_exit = (exit_pos.x == 0 || exit_pos.x == chunk_size_i - 1);
+        bool is_vertical_exit = (exit_pos.x == 0 || exit_pos.x == chunk_size - 1);
 
         sf::Vector2i divergence_point = is_vertical_exit
             ? sf::Vector2i{ exit_pos.y, n_r.x }
@@ -203,7 +99,7 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2i position)
         int offset_from_axis = is_vertical_exit ? dy : dx;
 
 
-        if (offset_from_axis != 0 && offset_from_axis < std::min(dungeon_min, 2 * (chunk_size_i / 5)) / 2  && !is_fallback)
+        if (offset_from_axis != 0 && offset_from_axis < std::min(dungeon_min, 2 * (chunk_size / 5)) / 2  && !is_fallback)
         {
             return;
         }
@@ -215,94 +111,7 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2i position)
         }
     };
 
-    while(!q.empty())
-    {
-        auto [d, visited] = q.front();
-        q.pop();
-
-        if(!visited)
-        {
-            if(!d->left && !d->right)
-            {
-                //divide if not visited
-                d->divide(rd_dev, (bern_dist(rd_dev) > 0.5 ? sf::Vector2i(1, 0) : sf::Vector2i(0, 1)), chunk_size_i);
-            }
-            if(d->left)
-            {
-                q.push({d->left, false});
-            }
-            if(d->right)
-            {
-                q.push({d->right, false});
-            }
-            if(!d->left && !d->right)
-            {
-                sf::Vector2i n_room_pos = d->rect.getCenter();
-                if(auto& c_ptr = n_chunk->rooms[n_room_pos.x][n_room_pos.y])
-                {
-                    std::vector<sf::Vector2i> o_exits = c_ptr->exits;
-                    c_ptr = std::make_shared<Room>(Room::RoomType::Empty, o_exits);
-                }
-                else
-                {
-                    c_ptr = std::make_shared<Room>();
-                }
-            }
-        }
-        else
-        {
-            if(d->left && d->right)
-            {
-                //connect rooms / rectangles
-                sf::Vector2i l = d->left->rect.getCenter();
-                sf::Vector2i r = d->right->rect.getCenter();
-                sf::Vector2i dir = {sign(r.x - l.x), sign(r.y - l.y)};
-                sf::Vector2i pos = l;
-
-                while(pos != r)
-                {
-                    sf::Vector2i n_pos = pos + dir;
-                    std::shared_ptr<Room>& tile = n_chunk->rooms[n_pos.x][n_pos.y];
-
-                    if(!tile)
-                    {
-                        bool is_vertical = dir.y != 0;
-                        tile = std::make_shared<Corridor>(is_vertical);
-                        tile->exits.push_back(-dir);
-                    }
-                    else if(tile)
-                    {
-                        tile->exits.push_back(-dir);
-                    }
-
-                    if(auto& c_ptr = n_chunk->rooms[pos.x][pos.y])
-                    {
-                        c_ptr->exits.push_back(dir);
-                    }
-                    else
-                    {
-                        c_ptr = std::make_shared<Room>(Room::RoomType::Empty, std::vector{dir});
-                    }
-
-                    pos = n_pos;
-                }
-
-                if(auto& r_ptr = n_chunk->rooms[pos.x][pos.y])
-                {
-                    r_ptr->exits.push_back(-dir);
-                }
-                else
-                {
-                    r_ptr = std::make_shared<Room>(Room::RoomType::Empty, std::vector{-dir});
-                }
-            }
-
-            continue;
-        }
-
-        visited = true;
-        q.push({d, visited});
-    }
+    generate_internal(n_chunk, rd_dev, chunk_size);
 
     //rewrite this later
     for(int i = 0; i < exit_closest.size(); ++i)
@@ -335,7 +144,7 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2i position)
         int j_m, k_m;
         bool do_ver;
         bool end = false;
-        if(e_pos.x == 0 || e_pos.x == chunk_size_i - 1)
+        if(e_pos.x == 0 || e_pos.x == chunk_size - 1)
         {
             do_ver = false;
             j_m = std::abs(dx);

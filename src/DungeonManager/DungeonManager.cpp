@@ -72,7 +72,7 @@ void DungeonManager::display_chunk(std::shared_ptr<Chunk> debug)
                     Application::instance().get_manager<RenderManager>()->add_drawable("ddun", room_rect);
                     for(auto exit : room->exits)
                     {
-                        auto ex_shape = std::make_shared<sf::CircleShape>(room_size.x * 0.2f);
+                        auto ex_shape = std::make_shared<sf::CircleShape>(room_size.x * 0.15f);
                         if(std::dynamic_pointer_cast<Corridor>(room))
                         {
                             ex_shape->setFillColor(sf::Color::Blue);
