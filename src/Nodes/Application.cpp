@@ -20,7 +20,7 @@ void Application::initialize()
     std::shared_ptr<FPSCounter> fps = std::make_shared<FPSCounter>();
     fps->set_position({15, 15});
     root_level.push_back(fps);
-    static sf::Vector2<std::int64_t> chunkcoords = {0, 0};  //debug only
+    static sf::Vector2i chunkcoords = {0, 0};  //debug only
 
     register_manager<RenderManager>();  //maybe should be added first
     register_manager<WindowEventManager>();     //just an empty node, at least for now

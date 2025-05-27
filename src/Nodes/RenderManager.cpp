@@ -37,7 +37,7 @@ sf::Vector2u RenderManager::get_render_texture_size(const std::string& name)
     return {-1u, -1u};
 }
 
-void RenderManager::add_layer(const std::string& name, char priority, sf::Vector2u size)
+void RenderManager::add_layer(const std::string& name, unsigned char priority, sf::Vector2u size)
 {
     if(layers.count(priority) || string_ref.count(name))
     {

@@ -2,6 +2,7 @@ set(SOURCES
     DungeonManager.cpp
     ChunkGenerator.cpp
     Room.cpp
+    Utils/ChunkGeneratorUtils.cpp
 )
 
 add_library(DungeonManager ${SOURCES})
