@@ -1,6 +1,16 @@
 #include "DungeonManager/Room.hpp"
 
-Room::Room(Room::RoomType type, std::vector<sf::Vector2i> exits) : type(type), exits(exits) {}
+bool Vector2iLess::operator()(const sf::Vector2i& a, const sf::Vector2i& b) const
+{
+    if(a.x != b.x)
+    {
+        return a.x < b.x;
+    }
+    
+    return a.y < b.y;
+}
 
-Corridor::Corridor(bool is_vertical, Room::RoomType type, std::vector<sf::Vector2i> exits)
+Room::Room(Room::RoomType type, Vector2iSet exits) : type(type), exits(exits) {}
+
+Corridor::Corridor(bool is_vertical, Room::RoomType type, Vector2iSet exits)
                     : vertical(is_vertical), Room(type, exits) {}

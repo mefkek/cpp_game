@@ -3,6 +3,7 @@ set(SOURCES
     ChunkGenerator.cpp
     Room.cpp
     Utils/ChunkGeneratorUtils.cpp
+    Utils/ChunkGeneratorUtilsVarious.cpp
     Utils/DungeonRect.cpp
 )
 

@@ -5,7 +5,7 @@
 
 int sign(int v);
 
-std::string get_edge_hash(sf::Vector2i a, sf::Vector2<std::int64_t> b, std::int64_t dungeon_seed,
+std::string get_edge_hash(sf::Vector2i a, sf::Vector2i b, std::int64_t dungeon_seed,
                           sf::Vector2u dungeon_size);
 
 void generate_exits(sf::Vector2i position, sf::Vector2u dungeon_size, std::size_t dungeon_seed, int chunk_size, 
