@@ -40,7 +40,7 @@ void TextureAtlas::set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::Vector2i co
     sprite->setTextureRect(tex_rect);
 }
 
-const sf::Texture& TextureAtlas::get_texture()
+const sf::Texture& TextureAtlas::get_texture() const
 {
     return *tex;
 }

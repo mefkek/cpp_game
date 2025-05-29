@@ -10,7 +10,7 @@ class TextureAtlas
     void set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::IntRect rect);
     void set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::Vector2i cords);
 
-    const sf::Texture& get_texture();
+    const sf::Texture& get_texture() const;
 
     private:
     std::unique_ptr<sf::Texture> tex;
