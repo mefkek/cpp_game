@@ -6,10 +6,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_compile_options(
     $<$<CONFIG:DEBUG>:-DDEBUG>
-    $<$<CONFIG:DEBUG>:-Wall>
-    $<$<CONFIG:DEBUG>:-Wextra>
-    $<$<CONFIG:DEBUG>:-Wall>
-    $<$<CONFIG:DEBUG>:-Wpedantic>
 )
 
 include(FetchContent)

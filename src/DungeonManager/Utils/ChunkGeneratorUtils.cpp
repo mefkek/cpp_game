@@ -39,7 +39,7 @@ std::string get_edge_hash(sf::Vector2i a, sf::Vector2i b, std::int64_t dungeon_s
 }
 
 void generate_exits(sf::Vector2i position, sf::Vector2u dungeon_size, std::size_t dungeon_seed, int chunk_size,
-                    std::vector<std::tuple<sf::Vector2i, sf::Vector2i, int>> &exit_closest,
+                    std::vector<sf::Vector2i>& exits,
                     std::shared_ptr<Chunk> n_chunk)
 {
     std::array<sf::Vector2i, 4> dirs = {sf::Vector2i(1, 0), {0, 1}, {-1, 0}, {0, -1}};
@@ -65,14 +65,14 @@ void generate_exits(sf::Vector2i position, sf::Vector2u dungeon_size, std::size_
         {
             n_pos.x = (dirs[i].x > 0) ? chunk_size - 1 : 0;
             n_pos.y = exit_pos;
-            exit_closest.push_back({n_pos, {0, 0}, std::numeric_limits<int>().max()});
+            exits.push_back(n_pos);
             exit = {(n_pos.x == 0 ? 1 : -1), 0};
         }
         else if (dirs[i].y != 0)
         {
             n_pos.x = exit_pos;
             n_pos.y = (dirs[i].y > 0) ? chunk_size - 1 : 0;
-            exit_closest.push_back({n_pos, {0, 0}, std::numeric_limits<int>().max()});
+            exits.push_back(n_pos);
             exit = {0, (n_pos.y == 0 ? 1 : -1)};
         }
 
@@ -147,41 +147,180 @@ void generate_internal(std::shared_ptr<Chunk> n_chunk, std::mt19937 &rd_dev, int
                 sf::Vector2i r = d->right->rect.getCenter();
                 sf::Vector2i dir = {sign(r.x - l.x), sign(r.y - l.y)};
                 sf::Vector2i pos = l;
+                bool is_vertical = (dir.y != 0);
 
-                while (pos != r)
+                if(auto& l_ptr = n_chunk->rooms[l.x][l.y])
                 {
-                    sf::Vector2i n_pos = pos + dir;
-                    std::shared_ptr<Room> &tile = n_chunk->rooms[n_pos.x][n_pos.y];
-
-                    if (!tile)
-                    {
-                        bool is_vertical = dir.y != 0;
-                        tile = std::make_shared<Corridor>(is_vertical);
-                        tile->exits.push_back(-dir);
-                    }
-                    else if (tile)
-                    {
-                        tile->exits.push_back(-dir);
-                    }
-
-                    if (auto &c_ptr = n_chunk->rooms[pos.x][pos.y])
-                    {
-                        c_ptr->exits.push_back(dir);
-                    }
-
-                    pos = n_pos;
+                    l_ptr->exits.push_back(dir);
+                }
+                else
+                {
+                    l_ptr = std::make_shared<Room>();
+                    l_ptr->exits.push_back(dir);
                 }
 
-                if (auto &r_ptr = n_chunk->rooms[pos.x][pos.y])
+                pos += dir;
+                while (pos != r)
+                {
+                    std::vector<sf::Vector2i> o_exits;
+                    auto& p_ptr= n_chunk->rooms[pos.x][pos.y];
+                    if(p_ptr)
+                    {
+                        o_exits = p_ptr->exits;
+                    }
+
+                    p_ptr = std::make_shared<Corridor>(is_vertical, Room::RoomType::Empty, std::vector{-dir, dir});
+
+                    for(auto& ex : o_exits)
+                    {
+                        p_ptr->exits.push_back(ex);
+                    }
+
+                    pos += dir;
+                }
+
+                if(auto& r_ptr = n_chunk->rooms[r.x][r.y])
                 {
                     r_ptr->exits.push_back(-dir);
                 }
+                else
+                {
+                    r_ptr = std::make_shared<Room>();
+                    r_ptr->exits.push_back(-dir);
+                }
             }
-
             continue;
         }
 
         visited = true;
         q.push({d, visited});
+    }
+}
+
+bool check_surroundings(sf::Vector2i pos, std::shared_ptr<Chunk> n_chunk, int separation)
+{
+    for(int i = -separation; i < separation; ++i)
+    {
+        for(int j = -separation; j < separation; ++j)
+        {
+            if(i == 0 && j == 0)
+            {
+                continue;
+            }
+
+            sf::Vector2i check_pos = {pos.x + i, pos.y + j};
+            if(n_chunk->rooms.find(check_pos.x) != n_chunk->rooms.end())
+            {
+                if(n_chunk->rooms[check_pos.x].find(check_pos.y) != n_chunk->rooms[check_pos.x].end())
+                {
+                    if(!std::dynamic_pointer_cast<Corridor>(n_chunk->rooms[check_pos.x][check_pos.y]))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    return true;    //position is valid
+}
+
+sf::Vector2i find_closest(sf::Vector2i exit_pos, std::shared_ptr<Chunk> n_chunk, int chunk_size, const std::vector<sf::Vector2i>& o_exits, bool fallback)
+{
+    sf::Vector2i res = {-1, -1};
+    int separation = get_min_separation(chunk_size);
+    int c_dist = std::numeric_limits<int>::max();
+    bool is_horizontal = exit_pos.x == 0 || exit_pos.y == chunk_size - 1;
+
+    for(const auto& [px, row] : n_chunk->rooms)
+    {
+        for(const auto& [py, room]: row)
+        {
+            if(px == exit_pos.x && py == exit_pos.y)
+            {
+                continue;
+            }
+            if(std::find(o_exits.begin(), o_exits.end(), sf::Vector2i{px,py}) != o_exits.end())
+            {
+                continue;
+            }
+
+            int dist = std::abs(exit_pos.x - px) + std::abs(exit_pos.y - py);
+            if(dist < c_dist)
+            {
+                sf::Vector2i split_point;
+                if(is_horizontal)
+                {
+                    split_point = {px, exit_pos.y};
+                }
+                else
+                {
+                    split_point = {exit_pos.x, py};
+                }
+
+                if(fallback)
+                {
+                    res = {px, py};
+                    c_dist = dist;
+                }
+                else if(check_surroundings(split_point, n_chunk, separation))
+                {
+                    res = {px, py};
+                    c_dist = dist;
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+void connect_exit(sf::Vector2i exit_pos, sf::Vector2i goal, std::shared_ptr<Chunk> n_chunk, int chunk_size)
+{
+    bool is_vertical = exit_pos.y == 0 || exit_pos.y == chunk_size - 1;
+    int dx = goal.x - exit_pos.x;
+    int dy = goal.y - exit_pos.y;
+    sf::Vector2i diff1 = {sign(dx), 0}, diff2 = {0, sign(dy)};
+    sf::Vector2i diff = diff1;
+
+    if(is_vertical)
+    {
+        diff = diff2;
+        diff2 = diff1;
+    }
+    else
+    {
+        diff = diff1;
+    }
+
+    sf::Vector2i pos = exit_pos + diff;
+    while(true)
+    {
+        auto& tile = n_chunk->rooms[pos.x][pos.y];
+        if(tile)
+        {
+            tile->exits.push_back(-diff);
+            return;
+        }
+        tile = std::make_shared<Corridor>(is_vertical);
+        tile->exits.push_back(-diff);
+
+        bool split_reached = (is_vertical) ? pos.y == goal.y : pos.x == goal.x;
+        if(split_reached)
+        {
+            if(diff == diff2)
+            {
+                return;
+            }
+
+            diff = diff2;
+            is_vertical = !is_vertical;
+
+            auto old_exits = tile->exits;
+            tile = std::make_shared<Room>();
+            tile->exits = old_exits;
+        }
+        
+        tile->exits.push_back(diff);
+        pos += diff;
     }
 }

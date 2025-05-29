@@ -70,6 +70,8 @@ void DungeonManager::display_chunk(std::shared_ptr<Chunk> debug)
                 {
                     debug_drawables.emplace_back(room_rect);
                     Application::instance().get_manager<RenderManager>()->add_drawable("ddun", room_rect);
+
+                    if(!room) continue;
                     for(auto exit : room->exits)
                     {
                         auto ex_shape = std::make_shared<sf::CircleShape>(room_size.x * 0.15f);
