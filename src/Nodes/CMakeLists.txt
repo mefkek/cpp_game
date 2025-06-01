@@ -7,6 +7,8 @@ set(SOURCES
     Colliders.cpp
     CollisionManager.cpp
     TriggerArea.cpp
+    ActorManager.cpp
+    Actor.cpp
 )
 
 add_library(Nodes ${SOURCES})
