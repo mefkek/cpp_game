@@ -45,3 +45,69 @@ ActorRaceEnum Actor::getRace() const
 {
     return race_;
 }
+
+std::string Actor::toString() const
+{
+    // Format:
+    //   <race as int> <numStats>\n
+    //   <key1> <value1>\n
+    //   <key2> <value2>\n
+    //   …
+    std::ostringstream oss;
+    oss << static_cast<int>(race_) << ' ' << stats_.size() << '\n';
+    for (const auto& kv : stats_)
+    {
+        oss << kv.first << ' ' << kv.second << '\n';
+    }
+    return oss.str();
+}
+
+
+#include "Nodes/Actor.hpp"
+#include <sstream>
+#include <stdexcept>
+
+// … other includes and Actor methods …
+
+void Actor::fromString(const std::string& data)
+{
+    std::istringstream iss(data);
+
+    int raceInt = 0;
+    size_t numStats = 0;
+
+    // 1) Read the race (as integer) and the count of stats
+    if (!(iss >> raceInt >> numStats))
+    {
+        throw std::runtime_error("Actor::fromString: failed to parse race/numStats");
+    }
+
+    // 2) Cast to ActorRaceEnum (assumes the integer is valid).
+    //    If you need to guard against out-of-range values, you could add your own check here.
+    race_ = static_cast<ActorRaceEnum>(raceInt);
+
+    // 3) Read exactly 'numStats' key/value pairs
+    std::unordered_map<std::string,int> newStats;
+    newStats.reserve(numStats);
+
+    for (size_t i = 0; i < numStats; ++i)
+    {
+        std::string key;
+        int value;
+        if (!(iss >> key >> value))
+        {
+            throw std::runtime_error("Actor::fromString: failed reading stat key/value");
+        }
+        newStats[key] = value;
+    }
+
+    // 4) If there is any leftover text, consider it an error
+    std::string leftover;
+    if (iss >> leftover)
+    {
+        throw std::runtime_error("Actor::fromString: extra data after reading stats");
+    }
+
+    // 5) Commit the newly parsed stats
+    stats_ = std::move(newStats);
+}

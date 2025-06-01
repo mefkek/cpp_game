@@ -7,6 +7,11 @@
 #include <unordered_map>
 #include <string>
 #include <memory>
+#include <sstream>
+#include <stdexcept>
+#include <ostream>
+#include <istream>
+
 
 // A game entity with stats and behavior.
 class Actor : public Node
@@ -25,6 +30,11 @@ public:
     // Query this actor’s race.
     ActorRaceEnum getRace() const;
 
+    std::string toString() const;
+
+    void fromString(const std::string& data);
+
+
 protected:
     // Hook after a successful stat change.
     virtual void onStatChange(const std::string& name, int newValue) {}
@@ -36,4 +46,15 @@ private:
     ActorRaceEnum                       race_;
     std::shared_ptr<ActorBehaviour>     behaviour_;
     std::unordered_map<std::string,int> stats_;
+};
+
+struct DummyBehaviour : public ActorBehaviour
+{
+    // The signature of behave, as expected by Actor::update():
+    //    behave(std::shared_ptr<Actor>).
+    // We simply do nothing here.
+    void behave(std::weak_ptr<Actor> actor_wp) override
+    {
+        // no‐op
+    }
 };
