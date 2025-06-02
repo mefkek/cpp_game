@@ -8,6 +8,7 @@ set(SOURCES
     CollisionManager.cpp
     TriggerArea.cpp
         MouseCollider.cpp
+        Label.cpp
 )
 
 add_library(Nodes ${SOURCES})
