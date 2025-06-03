@@ -9,6 +9,7 @@ set(SOURCES
     TriggerArea.cpp
         MouseCollider.cpp
         Label.cpp
+        Icon.cpp
 )
 
 add_library(Nodes ${SOURCES})
