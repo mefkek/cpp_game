@@ -1,10 +1,31 @@
 #pragma once
-#include "Nodes/Colliders.hpp"
+#include "Nodes/CollisionManager.hpp"
+#include "Nodes/TriggerArea.hpp"
 
-class MouseCollider : public CircleCollider {
+class MouseCollider : public CircleCollider
+{
 public:
-    MouseCollider(const sf::Vector2f& position);
-    void update(float deltaTime) override;
+    using CircleCollider::CircleCollider;
+    void on_collision(const std::weak_ptr<Collider> other) override;
+};
+
+class MouseTrigger : public TriggerArea
+{
+public:
+    using TriggerArea::TriggerArea;
+    void on_entered(const std::weak_ptr<Collider> other) override;
+    void on_exit(const std::weak_ptr<Collider> other) override;
+};
+
+class MouseCursor : public Node
+{
 private:
-    bool shouldBeRemoved = false;
+    std::weak_ptr<MouseTrigger> trigger;
+    std::weak_ptr<CircleCollider> collider;
+    std::string view_layer;
+    std::string collision_layer;
+public:
+    MouseCursor(const std::string& view, const std::string& coll);
+    void update(float deltaTime) override;
+    void initialize() override;
 };
