@@ -1,36 +1,48 @@
 #include "Nodes/Icon.hpp"
+#include "Nodes/RenderManager.hpp"
+#include "Nodes/Application.hpp"
 
-Icon::Icon(const sf::Texture& texture, RenderManager& manager, const std::string& layer)
-    : sprite(texture), renderManager(manager), layerName(layer) {
-    attach_to_layer();                                              // Add to the RenderManager layer on creation.
-}
+Icon::Icon(const std::string& layer) : layerName(layer) {}
 
-Icon::~Icon() {
-    detach_from_layer();                                // Ensure icon is detached from the layer when destroyed
+Icon::Icon(const std::string& layer, const sf::Texture& texture, sf::IntRect rect)
+    : layerName(layer)
+{
+    sprite = std::make_shared<sf::Sprite>(texture);
+    if(rect.size.x != -1 && rect.size.y != -1)
+    {
+        sprite->setTextureRect(rect);
+    }
+    Application::instance().get_manager<RenderManager>()->add_drawable(layerName, sprite);
 }
 
 void Icon::set_position(const sf::Vector2f& position)
 {
-    sprite.setPosition(position);                                       // Set the icon's position
+    sprite->setPosition(position);
 }
 
-void Icon::attach_to_layer()
+void Icon::set_scale(const sf::Vector2f& scale)
 {
-    renderManager.add_drawable(layerName, std::dynamic_pointer_cast<sf::Drawable>(shared_from_this()));      // Attach to layer
+    sprite->setScale(scale);
 }
 
-
-void Icon::detach_from_layer()
+void Icon::set_texture(const sf::Texture& texture, sf::IntRect rect)
 {
-    renderManager.remove_drawable(layerName, std::dynamic_pointer_cast<sf::Drawable>(shared_from_this())); // Detach from the layer
+    sprite = std::make_shared<sf::Sprite>(texture);
+    if(rect.size.x != -1 && rect.size.y != -1)
+    {
+        sprite->setTextureRect(rect);
+    }
+    Application::instance().get_manager<RenderManager>()->add_drawable(layerName, sprite);
 }
 
-void Icon::update(float delta)
+sf::FloatRect Icon::get__global_bounds() const
 {
-    sprite.move(sf::Vector2f(10.0f * delta, 0.0f));                                 // Move icon to the right
+    return sprite->getGlobalBounds();
 }
 
-void Icon::draw(sf::RenderTarget& target, sf::RenderStates states) const
+sf::Vector2f Icon::get_position() const
 {
-    target.draw(sprite, states);                                        // Draw the icons sprite on the screen
+    return sprite->getPosition();
 }
+
+void Icon::update(float delta){}
