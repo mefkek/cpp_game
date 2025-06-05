@@ -7,6 +7,10 @@
 #include <stack>
 #include <array>
 
+//debug
+#include "Nodes/MouseCollider.hpp"
+#include "Nodes/Icon.hpp"
+
 std::mutex Application::application_mutex;
 
 void Application::initialize()
@@ -17,11 +21,13 @@ void Application::initialize()
     window = sf::RenderWindow(sf::VideoMode({640 * 2, 360 * 2}), "CMake SFML Project");
     window.setVerticalSyncEnabled(true);
 
-    //This block can stay for now, but this should be handled properly later on
-    //(program argumetns -d as an separete debug node maybe?)
+    /*
+     This block can stay for now, but this should be handled properly later on
+    (program argumetns -d as an separete debug node maybe?)
     std::shared_ptr<FPSCounter> fps = std::make_shared<FPSCounter>();
     fps->set_position({15, 15});
     root_level.push_back(fps);
+    */
 
     static TextureAtlas atlas("build/runtime_files/Dungeon_Tileset.png");
     static std::shared_ptr<Tilemap> tilemap = std::make_shared<Tilemap>();
@@ -37,25 +43,31 @@ void Application::initialize()
     tilemap->setScale({5.f, 5.f});
 
 
-    register_manager<RenderManager>();  //maybe should be added first 
+    register_manager<RenderManager>();          //maybe should be added first
     register_manager<WindowEventManager>();     //just an empty node, at least for now
     register_manager<CollisionManager>();
 
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
-    get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps->text));
     get_manager<RenderManager>()->add_drawable("Debug_ui", tilemap);
 
     get_manager<CollisionManager>()->add_layer("Debug_coll", 0);
 
     //for testing collisions
     root_level.push_back(create<DebugRect>());
-    root_level.push_back(create<DebugCirc>());
+    //root_level.push_back(create<DebugCirc>());
+    root_level.push_back(create<MouseCursor>("Debug_ui", "Debug_coll"));
+    root_level.push_back(create<FPSCounter>());
+
+    auto ico = create<Icon>("Debug_ui", atlas.get_texture(), sf::IntRect{{0, 0}, {32, 32}});
+    ico->set_scale({5.f, 5.f});
+    ico->set_position({1600.f, 0.f});
+    root_level.push_back(ico);
 
     get_manager<WindowEventManager>()->get_event<sf::Event::Closed>()->
         subscribe([&](const sf::Event::Closed& e){close();});
-    get_manager<WindowEventManager>()->get_event<sf::Event::Resized>()->
-        subscribe([&](const sf::Event::Resized& e){get_manager<RenderManager>()->rescale();});
+    //get_manager<WindowEventManager>()->get_event<sf::Event::Resized>()->
+        //subscribe([&](const sf::Event::Resized& e){get_manager<RenderManager>()->rescale();});
 
     //uncomment for testing
     /*
