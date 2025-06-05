@@ -16,17 +16,18 @@ void Icon::set_position(const sf::Vector2f& position)
 
 void Icon::attach_to_layer()
 {
-    renderManager.add_drawable(layerName, shared_from_this());      // Attach to layer
+    renderManager.add_drawable(layerName, std::dynamic_pointer_cast<sf::Drawable>(shared_from_this()));      // Attach to layer
 }
+
 
 void Icon::detach_from_layer()
 {
-    renderManager.remove_drawable(layerName, shared_from_this()); // Detach from the layer
+    renderManager.remove_drawable(layerName, std::dynamic_pointer_cast<sf::Drawable>(shared_from_this())); // Detach from the layer
 }
 
 void Icon::update(float delta)
 {
-    sprite.move(10.0f * delta, 0.0f);                                 // Move icon to the right
+    sprite.move(sf::Vector2f(10.0f * delta, 0.0f));                                 // Move icon to the right
 }
 
 void Icon::draw(sf::RenderTarget& target, sf::RenderStates states) const
