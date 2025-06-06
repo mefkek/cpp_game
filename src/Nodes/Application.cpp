@@ -37,8 +37,6 @@ void Application::initialize()
     // tilemap->setPosition({1920.f / 6.f, 1240.f / 6.f});
     // tilemap->setScale({5.f, 5.f});
 
-    static sf::Vector2i chunkcoords = {0, 0};  //debug only
-
     register_manager<RenderManager>();  //maybe should be added first 
     register_manager<WindowEventManager>();     //just an empty node, at least for now
     register_manager<CollisionManager>();
@@ -68,27 +66,23 @@ void Application::initialize()
         {
             if(e.scancode == sf::Keyboard::Scancode::Enter)
             {
-                get_manager<DungeonManager>()->move(chunkcoords);
+                get_manager<DungeonManager>()->move({0, 0});
             }
             else if(e.scancode == sf::Keyboard::Scancode::Up)
             {
-                ++chunkcoords.y;
-                get_manager<DungeonManager>()->move(chunkcoords);
+                get_manager<DungeonManager>()->move({0, 1});
             }
             else if(e.scancode == sf::Keyboard::Scancode::Down)
             {
-                --chunkcoords.y;
-                get_manager<DungeonManager>()->move(chunkcoords);
+                get_manager<DungeonManager>()->move({0, -1});
             }
             else if(e.scancode == sf::Keyboard::Scancode::Right)
             {
-                ++chunkcoords.x;
-                get_manager<DungeonManager>()->move(chunkcoords);
+                get_manager<DungeonManager>()->move({-1, 0});
             }
             else if(e.scancode == sf::Keyboard::Scancode::Left)
             {
-                --chunkcoords.x;
-                get_manager<DungeonManager>()->move(chunkcoords);
+                get_manager<DungeonManager>()->move({1, 0});
             }
         });
     //********************************************/

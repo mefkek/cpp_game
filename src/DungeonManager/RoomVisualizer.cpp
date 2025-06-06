@@ -3,40 +3,59 @@
 #include <random>
 
 RoomVisualizer::RoomVisualizer(TextureAtlas& tileset)
-    : tileset(tileset)
+    : tileset(tileset), room_tilemap(std::make_shared<Tilemap>())
+{}
+
+void RoomVisualizer::visualize(std::shared_ptr<Chunk> chunk, unsigned int chunk_size, sf::Vector2i chunk_pos, sf::Vector2f scale)
 {
-    std::mt19937 rd(2137);
-    std::uniform_int_distribution rand_wall(1, 4);
-    std::uniform_int_distribution rand_floor_x(6, 9);
-    std::uniform_int_distribution rand_floor_y(0, 2);
-
-    for(int i = 0; i < 12; ++i)
+    room_tiles.clear();
+    room_tiles.resize(chunk_size * chunk_size);
+    for(int y = 0; y < chunk_size; ++y)
     {
-        room_tiles.emplace_back(rand_wall(rd), 0);
-    }
-
-    for(int i = 0; i < 5; ++i)
-    {
-        for(int j = 0; j < 12; ++j)
+        for(int x = 0; x < chunk_size; ++x)
         {
-            room_tiles.emplace_back(rand_floor_x(rd), rand_floor_y(rd));
+            if(chunk->rooms.count(x) && chunk->rooms[x].count(y))
+            {
+                auto room = chunk->rooms[x][y];
+                if(auto c_ptr = std::dynamic_pointer_cast<Corridor>(room))
+                {
+                    if(c_ptr->vertical)
+                    {
+                        room_tiles[y * chunk_size + x] = {10, 1};
+                    }
+                    else
+                    {
+                        room_tiles[y * chunk_size + x] = {10, 2};
+                    }
+                }
+                else
+                {
+                    room_tiles[y * chunk_size + x] = {10, 0};
+                }
+            }
+            else
+            {
+                room_tiles[y * chunk_size + x] = {10, 4};
+            }
         }
     }
 
-    for(int i = 0; i < 12; ++i)
-    {
-        room_tiles.emplace_back(rand_wall(rd), 4);
-    }
-
-    room_tilemap = std::make_shared<Tilemap>();
-    room_tilemap->load(tileset, {16, 16}, room_tiles.data(), 12, 7);
-    room_tilemap->setScale({10.f, 10.f});
-    room_tilemap->setPosition({0.f, 30.f});
+    room_tilemap->load(tileset, {16, 16}, room_tiles.data(), chunk_size, chunk_size);
+    sf::Vector2f centered_position = -sf::Vector2f(chunk_pos.x * 16.f * scale.x, chunk_pos.y * 16.f * scale.y);
+    room_tilemap->setPosition(centered_position);
+    room_tilemap->setScale({scale.x, scale.y});
     Application::instance().get_manager<RenderManager>()->add_drawable("ddun", room_tilemap);
+
+    tileset.set_rect(player_sprite, {10, 3});
+    player_sprite->setScale(scale);
+    player_sprite->setPosition({Application::instance().get_manager<RenderManager>()->get_render_texture("ddun").getSize().x / 2.f - 16.f * scale.x,
+                               Application::instance().get_manager<RenderManager>()->get_render_texture("ddun").getSize().y / 2.f - 16.f * scale.y});
+    Application::instance().get_manager<RenderManager>()->add_drawable("ddun", player_sprite);
 }
 
-void RoomVisualizer::visualize(const Room::RoomType type, sf::Vector2f position, sf::Vector2f scale)
+void RoomVisualizer::move(sf::Vector2i diff)
 {
-    tileset.set_rect(special_element, {4, 10});
-    Application::instance().get_manager<RenderManager>()->add_drawable("ddun", special_element);
+    sf::Vector2f scale = room_tilemap->getScale();
+    sf::Vector2f pos = room_tilemap->getPosition();
+    room_tilemap->setPosition({pos.x + diff.x * 16.f * scale.x, pos.y + diff.y * 16.f * scale.y});
 }
