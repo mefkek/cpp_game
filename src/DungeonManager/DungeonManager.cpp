@@ -6,6 +6,9 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <cmath>
+#include <algorithm>
+
+constexpr sf::Vector2f debug_disp_scale = {5.f, 5.f};
 
 void DungeonManager::initialize()
 {
@@ -26,6 +29,10 @@ void DungeonManager::initialize()
     {
         for(auto& [y, room] : row)
         {
+            if(std::dynamic_pointer_cast<Corridor>(room))
+            {
+                continue;
+            }
             float dist = std::sqrt(static_cast<float>(x * x + y * y));
             if(dist < closest_distance)
             {
@@ -36,58 +43,57 @@ void DungeonManager::initialize()
     }
 
     pos_chunk = closest_room;
-    visualizer->visualize(chunk, chunk_size, pos_chunk, {5.f, 5.f});
+    visualizer->visualize(chunk, chunk_size, pos_chunk, debug_disp_scale);
 }
 
 bool DungeonManager::move(sf::Vector2i diff)
 {
-    sf::Vector2i n_pos = pos_chunk + diff;
-
-    if(chunk->rooms.count(n_pos.x) && chunk->rooms[n_pos.x].count(n_pos.y))
+    auto room = chunk->rooms[pos_chunk.x][pos_chunk.y];
+    if(std::find(room->exits.begin(), room->exits.end(), diff) != room->exits.end())
     {
-        visualizer->move(diff);
-        pos_chunk = n_pos;
+        pos_chunk += diff;
     }
     else
     {
-        std::shared_ptr<Chunk> n_chunk;
-        sf::Vector2i t_pos = pos_dungeon;
-        sf::Vector2i new_pos_chunk = n_pos;
-
-        if(n_pos.x < 0)
-        {
-            t_pos.x -= 1;
-            new_pos_chunk.x = chunk_size - 1;
-        }
-        else if(n_pos.x >= chunk_size)
-        {
-            t_pos.x += 1;
-            new_pos_chunk.x = 0;
-        }
-
-        if(n_pos.y < 0)
-        {
-            t_pos.y -= 1;
-            new_pos_chunk.y = chunk_size - 1;
-        }
-        else if(n_pos.y >= chunk_size)
-        {
-            t_pos.y += 1;
-            new_pos_chunk.y = 0;
-        }
-
-        n_chunk = chunk_getter->operator()(t_pos);
-
-        if(!n_chunk || !n_chunk->rooms.count(new_pos_chunk.x) || !n_chunk->rooms[new_pos_chunk.x].count(new_pos_chunk.y))
-        {
-            return false;
-        }
-
-        chunk = n_chunk;
-        pos_dungeon = t_pos;
-        pos_chunk = new_pos_chunk;
-        visualizer->visualize(n_chunk, chunk_size, pos_chunk, {5.f, 5.f});
+        return false;
     }
 
+    bool changed = false;
+    if(pos_chunk.x < 0)
+    {
+        --pos_dungeon.x;
+        pos_chunk.x = chunk_size - 1;
+        changed = true;
+    }
+    else if(pos_chunk.x > chunk_size - 1)
+    {
+        ++pos_dungeon.x;
+        pos_chunk.x = 0;
+        changed = true;
+    }
+    else if(pos_chunk.y < 0)
+    {
+        --pos_dungeon.y;
+        pos_chunk.y = chunk_size - 1;
+        changed = true;
+    }
+    else if(pos_chunk.y > chunk_size - 1)
+    {
+        ++pos_dungeon.y;
+        pos_chunk.y = 0;
+        changed = true;
+    }
+
+    if(changed)
+    {
+        chunk = chunk_getter->operator()(pos_dungeon);
+        visualizer->visualize(chunk, chunk_size, pos_chunk, debug_disp_scale);
+    }
+    else
+    {
+        visualizer->move(diff);
+    }
+
+    Logger::log(Logger::MessageType::Info, "Pos: ", pos_chunk.x, ", ", pos_chunk.y);
     return true;
 }

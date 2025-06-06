@@ -43,11 +43,11 @@ void generate_exits(sf::Vector2i position, sf::Vector2u dungeon_size, std::size_
         if (n_pos.x == 0 || n_pos.y == 0)
         {
             bool vertical = n_pos.y == 0;
-            n_chunk->rooms[n_pos.x][n_pos.y] = std::make_shared<Corridor>(vertical, Room::RoomType::Empty, Vector2iSet{exit});
+            n_chunk->rooms[n_pos.x][n_pos.y] = std::make_shared<Corridor>(vertical, Room::RoomType::Empty, Vector2iSet{exit, -exit});
         }
         else
         {
-            n_chunk->rooms[n_pos.x][n_pos.y] = std::make_shared<Room>(Room::RoomType::Empty, Vector2iSet{exit});
+            n_chunk->rooms[n_pos.x][n_pos.y] = std::make_shared<Room>(Room::RoomType::Empty, Vector2iSet{exit, -exit});
         }
     }
 }
