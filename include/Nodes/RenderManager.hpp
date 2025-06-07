@@ -27,7 +27,7 @@ class RenderManager : public Node
     sf::RenderTexture& get_render_texture(const std::string& name);
     sf::Sprite& get_render_sprite(const std::string& name);
 
-    void add_layer(const std::string& name, char priority = 0, sf::Vector2u size = {640, 360});
+    void add_layer(const std::string& name, unsigned char priority = 0, sf::Vector2u size = {640, 360});
 
     void add_drawable(const std::string& layer, const std::weak_ptr<sf::Drawable>& dw);
 

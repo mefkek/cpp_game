@@ -44,7 +44,7 @@ sf::Sprite& RenderManager::get_render_sprite(const std::string& name)
     throw std::runtime_error("Layer with name: " +  name + " has not been found.");
 }
 
-void RenderManager::add_layer(const std::string& name, char priority, sf::Vector2u size)
+void RenderManager::add_layer(const std::string& name, unsigned char priority, sf::Vector2u size)
 {
     if(layers.count(priority) || string_ref.count(name))
     {
