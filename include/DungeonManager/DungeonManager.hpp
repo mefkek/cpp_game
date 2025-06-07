@@ -17,7 +17,7 @@ class DungeonManager : public Node
     std::size_t dungeon_seed;
     sf::Vector2i pos_dungeon;
     sf::Vector2i pos_chunk;
-    std::array<chunk_p, 9> loaded_chunks;
+    std::vector<chunk_p> loaded_chunks;
     std::unique_ptr<RoomVisualizer> visualizer;
     std::unique_ptr<ChunkGenerator> chunk_getter;
     std::shared_ptr<Chunk> current_chunk;

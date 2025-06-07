@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <thread>
 
-constexpr sf::Vector2f debug_disp_scale = {1.f, 1.f};
+constexpr sf::Vector2f debug_disp_scale = {5.f, 5.f};
 
 void DungeonManager::reload_chunks()
 {
@@ -20,19 +20,21 @@ void DungeonManager::reload_chunks()
         {-1, -1}, {0, -1}, {1, -1}
     };
 
+    std::vector<chunk_p> new_loaded_chunks(9);
     std::vector<std::thread> threads;
     for(int i = 0; i < dirs.size(); ++i)
     {
-        auto it = std::find_if(loaded_chunks.begin(), loaded_chunks.end(), [&](const chunk_p& o){return o.first == pos_dungeon + dirs[i] && o.second;});
+        sf::Vector2i target_pos = pos_dungeon + dirs[i];
+        auto it = std::find_if(loaded_chunks.begin(), loaded_chunks.end(), [&](const chunk_p& o){return o.first == target_pos && o.second;});
         if(it != loaded_chunks.end())
         {
-            loaded_chunks[i].second = (*it).second;
+            new_loaded_chunks[i] = *it;
             continue;
         }
 
-        loaded_chunks[i].second.reset();
-        threads.emplace_back([i, this, &dirs](){
-            loaded_chunks[i] = {pos_dungeon + dirs[i], chunk_getter->operator()(pos_dungeon + dirs[i])};
+        threads.emplace_back([i, this, &dirs, &new_loaded_chunks, target_pos]()
+        {
+            new_loaded_chunks[i] = {target_pos, chunk_getter->operator()(target_pos)};
         });
     }
 
@@ -41,11 +43,14 @@ void DungeonManager::reload_chunks()
         t.join();
     }
 
+    loaded_chunks = std::move(new_loaded_chunks);
+
     current_chunk = loaded_chunks[4].second;
 }
 
 void DungeonManager::initialize()
 {
+    this->loaded_chunks.resize(9);
     this->dungeon_seed = 10;    //for debugging only
     this->dungeon_size = {255, 255};
     this->chunk_size = 32;
@@ -86,6 +91,10 @@ void DungeonManager::initialize()
 
 bool DungeonManager::move(sf::Vector2i diff)
 {
+    if(!current_chunk->rooms.count(pos_chunk.x) || !current_chunk->rooms[pos_chunk.x].count(pos_chunk.y))
+    {
+        return false;
+    }
     auto room = current_chunk->rooms[pos_chunk.x][pos_chunk.y];
     if(std::find(room->exits.begin(), room->exits.end(), diff) != room->exits.end())
     {
@@ -129,7 +138,7 @@ bool DungeonManager::move(sf::Vector2i diff)
     }
     else
     {
-        visualizer->move(diff);
+        visualizer->move(diff, current_chunk, pos_chunk);
     }
 
     return true;
