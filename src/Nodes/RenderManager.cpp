@@ -63,6 +63,20 @@ void RenderManager::add_layer(const std::string& name, char priority, sf::Vector
     );
 }
 
+sf::Vector2f RenderManager::translate_to_layer(const std::string& layer, const sf::Vector2f& vec)
+{
+    if(string_ref.count(layer))
+    {
+        if(layers.count(string_ref[layer]))
+        {
+            sf::Vector2f scale = layers.at(string_ref[layer]).sp->getScale();
+            return {vec.x / scale.x, vec.y / scale.y};
+        }
+    }
+
+    throw std::runtime_error("Layer with name: " +  layer + " has not been found.");
+}
+
 void RenderManager::add_drawable(const std::string& layer, const std::weak_ptr<sf::Drawable>& dw)
 {
     if(string_ref.count(layer))
