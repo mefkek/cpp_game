@@ -9,57 +9,68 @@ RoomVisualizer::RoomVisualizer(TextureAtlas& tileset)
     room_tilemap->rotate(sf::degrees(180.f));
 }
 
-void RoomVisualizer::visualize(std::shared_ptr<Chunk> chunk, unsigned int chunk_size, sf::Vector2i chunk_pos, sf::Vector2f scale)
+void RoomVisualizer::visualize(const std::array<chunk_p, 9>& chunks, unsigned int chunk_size, sf::Vector2i chunk_pos, sf::Vector2f scale)
 {
     room_tiles.clear();
-    room_tiles.resize(chunk_size * chunk_size);
-    for(int y = 0; y < chunk_size; ++y)
+    room_tiles.resize((3 * chunk_size) * (3 * chunk_size));
+    for(int i = 0; i < 3; ++i)
     {
-        for(int x = 0; x < chunk_size; ++x)
+        int swapped_i = 2 - i; // Swap top and bottom rows
+        for(int j = 0; j < 3; ++j)
         {
-            if(chunk->rooms.count(x) && chunk->rooms[x].count(y))
+            auto& [pos, chunk] = chunks[swapped_i * 3 + j];
+
+            for(int y = 0; y < chunk_size; ++y)
             {
-                auto room = chunk->rooms[x][y];
-                if(x == chunk_pos.x && y == chunk_pos.y)
+                for(int x = 0; x < chunk_size; ++x)
                 {
-                    room_tiles[y*chunk_size+x] = {10, 3};
-                }
-                if(auto c_ptr = std::dynamic_pointer_cast<Corridor>(room))
-                {
-                    if(c_ptr->vertical)
+                    int global_x = j * chunk_size + x;
+                    int global_y = i * chunk_size + y;
+                    int index = global_y * (chunk_size * 3) + global_x;
+
+                    if(chunk->rooms.count(x) && chunk->rooms[x].count(y))
                     {
-                        room_tiles[y * chunk_size + x] = {10, 1};
+                        auto room = chunk->rooms[x][y];
+                        if(auto c_ptr = std::dynamic_pointer_cast<Corridor>(room))
+                        {
+                            if(c_ptr->vertical)
+                            {
+                                room_tiles[index] = {10, 1};
+                            }
+                            else
+                            {
+                                room_tiles[index] = {10, 2};
+                            }
+                        }
+                        else
+                        {
+                            room_tiles[index] = {10, 0};
+                        }
                     }
                     else
                     {
-                        room_tiles[y * chunk_size + x] = {10, 2};
+                        room_tiles[index] = {10, 4};
                     }
                 }
-                else
-                {
-                    room_tiles[y * chunk_size + x] = {10, 0};
-                }
-            }
-            else
-            {
-                room_tiles[y * chunk_size + x] = {10, 4};
             }
         }
     }
 
-    room_tilemap->load(tileset, {16, 16}, room_tiles.data(), chunk_size, chunk_size);
+    auto render = Application::instance().get_manager<RenderManager>();
+    room_tilemap->load(tileset, {16, 16}, room_tiles.data(), chunk_size * 3, chunk_size * 3);
     room_tilemap->setScale({scale.x, scale.y});
-    sf::Vector2f size = {chunk_size * 16.f * scale.x, chunk_size * 16.f * scale.x};
-    room_tilemap->setPosition({Application::instance().get_manager<RenderManager>()->get_render_texture("ddun").getSize().x / 2.f + chunk_pos.x * 16.f * scale.x,
-                               Application::instance().get_manager<RenderManager>()->get_render_texture("ddun").getSize().y / 2.f + chunk_pos.y * 16.f * scale.y});
+    sf::Vector2f chunk_offset = {(chunk_size * 2.f) * 16.f * scale.x, (chunk_size * 2.f) * 16.f * scale.y};
+    sf::Vector2f player_offset = {(chunk_size - chunk_pos.x) * 16.f * scale.x, (chunk_size - chunk_pos.y) * 16.f * scale.y};
+    room_tilemap->setPosition({render->get_render_texture("ddun").getSize().x / 2.f + chunk_offset.x - player_offset.x,
+                               render->get_render_texture("ddun").getSize().y / 2.f + chunk_offset.y - player_offset.y});
 
-    Application::instance().get_manager<RenderManager>()->add_drawable("ddun", room_tilemap);
+    render->add_drawable("ddun", room_tilemap);
 
     tileset.set_rect(player_sprite, {10, 3});
     player_sprite->setScale(scale);
-    player_sprite->setPosition({Application::instance().get_manager<RenderManager>()->get_render_texture("ddun").getSize().x / 2.f - 16.f * scale.x,
-                               Application::instance().get_manager<RenderManager>()->get_render_texture("ddun").getSize().y / 2.f - 16.f * scale.y});
-    Application::instance().get_manager<RenderManager>()->add_drawable("ddun", player_sprite);
+    player_sprite->setPosition({render->get_render_texture("ddun").getSize().x / 2.f - 16.f * scale.x,
+                                render->get_render_texture("ddun").getSize().y / 2.f - 16.f * scale.y});
+    render->add_drawable("ddun", player_sprite);
 }
 
 void RoomVisualizer::move(sf::Vector2i diff)

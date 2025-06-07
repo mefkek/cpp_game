@@ -7,8 +7,42 @@
 #include <unordered_map>
 #include <cmath>
 #include <algorithm>
+#include <thread>
 
-constexpr sf::Vector2f debug_disp_scale = {5.f, 5.f};
+constexpr sf::Vector2f debug_disp_scale = {1.f, 1.f};
+
+void DungeonManager::reload_chunks()
+{
+    std::array<sf::Vector2i, 9> dirs = 
+    {
+        sf::Vector2i{-1, 1}, {0, 1}, {1,1},
+        {-1, 0}, {0, 0}, {1, 0},
+        {-1, -1}, {0, -1}, {1, -1}
+    };
+
+    std::vector<std::thread> threads;
+    for(int i = 0; i < dirs.size(); ++i)
+    {
+        auto it = std::find_if(loaded_chunks.begin(), loaded_chunks.end(), [&](const chunk_p& o){return o.first == pos_dungeon + dirs[i] && o.second;});
+        if(it != loaded_chunks.end())
+        {
+            loaded_chunks[i].second = (*it).second;
+            continue;
+        }
+
+        loaded_chunks[i].second.reset();
+        threads.emplace_back([i, this, &dirs](){
+            loaded_chunks[i] = {pos_dungeon + dirs[i], chunk_getter->operator()(pos_dungeon + dirs[i])};
+        });
+    }
+
+    for(auto& t : threads)
+    {
+        t.join();
+    }
+
+    current_chunk = loaded_chunks[4].second;
+}
 
 void DungeonManager::initialize()
 {
@@ -21,11 +55,12 @@ void DungeonManager::initialize()
 
     chunk_getter = std::make_unique<ChunkGenerator>(chunk_size, dungeon_size, dungeon_seed);
     visualizer = std::make_unique<RoomVisualizer>(atlas);
-    this->chunk = chunk_getter->operator()(pos_dungeon);
+    reload_chunks();
 
     sf::Vector2i closest_room = {0, 0};
     float closest_distance = std::numeric_limits<float>::max();
-    for(auto& [x, row] : chunk->rooms)
+    sf::Vector2i chunk_mid = {static_cast<int>(chunk_size) / 2, static_cast<int>(chunk_size) / 2};
+    for(auto& [x, row] : current_chunk->rooms)
     {
         for(auto& [y, room] : row)
         {
@@ -33,7 +68,10 @@ void DungeonManager::initialize()
             {
                 continue;
             }
-            float dist = std::sqrt(static_cast<float>(x * x + y * y));
+            float dx = static_cast<float>(chunk_mid.x) - static_cast<float>(x);
+            float dy = static_cast<float>(chunk_mid.y) - static_cast<float>(y);
+
+            float dist = std::sqrt(static_cast<float>(dx * dx + dy * dy));
             if(dist < closest_distance)
             {
                 closest_distance = dist;
@@ -43,12 +81,12 @@ void DungeonManager::initialize()
     }
 
     pos_chunk = closest_room;
-    visualizer->visualize(chunk, chunk_size, pos_chunk, debug_disp_scale);
+    visualizer->visualize(loaded_chunks, chunk_size, pos_chunk, debug_disp_scale);
 }
 
 bool DungeonManager::move(sf::Vector2i diff)
 {
-    auto room = chunk->rooms[pos_chunk.x][pos_chunk.y];
+    auto room = current_chunk->rooms[pos_chunk.x][pos_chunk.y];
     if(std::find(room->exits.begin(), room->exits.end(), diff) != room->exits.end())
     {
         pos_chunk += diff;
@@ -86,14 +124,13 @@ bool DungeonManager::move(sf::Vector2i diff)
 
     if(changed)
     {
-        chunk = chunk_getter->operator()(pos_dungeon);
-        visualizer->visualize(chunk, chunk_size, pos_chunk, debug_disp_scale);
+        reload_chunks();
+        visualizer->visualize(loaded_chunks, chunk_size, pos_chunk, debug_disp_scale);
     }
     else
     {
         visualizer->move(diff);
     }
 
-    Logger::log(Logger::MessageType::Info, "Pos: ", pos_chunk.x, ", ", pos_chunk.y);
     return true;
 }
