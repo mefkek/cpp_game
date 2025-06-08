@@ -26,7 +26,7 @@ std::shared_ptr<Chunk> ChunkGenerator::operator()(sf::Vector2i position)
     {
         const std::string msg = "Chunk at position: " + std::to_string(position.x) + ", " +
                                 std::to_string(position.y) + " is out of range";
-        throw std::runtime_error(msg);
+        return nullptr;
     }
 
     std::shared_ptr<Chunk> n_chunk = std::make_shared<Chunk>();

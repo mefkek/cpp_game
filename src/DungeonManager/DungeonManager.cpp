@@ -52,7 +52,7 @@ void DungeonManager::initialize()
 {
     this->loaded_chunks.resize(9);
     this->dungeon_seed = 10;    //for debugging only
-    this->dungeon_size = {255, 255};
+    this->dungeon_size = {2, 2};
     this->chunk_size = 32;
     pos_dungeon = {0, 0};
 

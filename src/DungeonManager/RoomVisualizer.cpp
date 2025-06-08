@@ -75,14 +75,18 @@ RoomVisualizer::RoomVisualizer(TextureAtlas& tileset)
 
 void RoomVisualizer::display_minimap(const std::vector<chunk_p>& chunks, unsigned int chunk_size, sf::Vector2i chunk_pos, sf::Vector2f scale)
 {
-    map_tiles.clear();
-    map_tiles.resize((3 * chunk_size) * (3 * chunk_size));
+    map_tiles = std::vector<sf::Vector2i>((3 * chunk_size) * (3 * chunk_size), {10, 8});
+    
     for(int i = 0; i < 3; ++i)
     {
         int swapped_i = 2 - i;
         for(int j = 0; j < 3; ++j)
         {
             auto& [pos, chunk] = chunks[swapped_i * 3 + j];
+            if(!chunk)
+            {
+                continue;
+            }
 
             for(int y = 0; y < chunk_size; ++y)
             {
@@ -140,10 +144,6 @@ void RoomVisualizer::display_minimap(const std::vector<chunk_p>& chunks, unsigne
                         {
                             map_tiles[index] = {10, 0};
                         }
-                    }
-                    else
-                    {
-                        map_tiles[index] = {10, 8};
                     }
                 }
             }
