@@ -10,6 +10,8 @@ set(SOURCES
         MouseCollider.cpp
         Label.cpp
         Icon.cpp
+        ButtonColliders.cpp
+        Button.cpp
 )
 
 add_library(Nodes ${SOURCES})
