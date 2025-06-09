@@ -1,6 +1,7 @@
 #include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
 #include "Nodes/CollisionManager.hpp"
+#include "DungeonManager/DungeonManager.hpp"
 #include "Nodes/FPSCounter.hpp"
 #include "Tilemap/Tilemap.hpp"
 #include "Events.hpp"
@@ -23,47 +24,67 @@ void Application::initialize()
     fps->set_position({15, 15});
     root_level.push_back(fps);
 
-    static TextureAtlas atlas("build/runtime_files/Dungeon_Tileset.png");
-    static std::shared_ptr<Tilemap> tilemap = std::make_shared<Tilemap>();
-    constexpr std::array<sf::Vector2i, 30> tiles = {
-        sf::Vector2i(0, 0), sf::Vector2i(1, 0), sf::Vector2i(2, 0), sf::Vector2i(3, 0), sf::Vector2i(4, 0), sf::Vector2i(5, 0),
-        sf::Vector2i(0, 1), sf::Vector2i(1, 1), sf::Vector2i(2, 1), sf::Vector2i(3, 1), sf::Vector2i(4, 1), sf::Vector2i(5, 1),
-        sf::Vector2i(0, 2), sf::Vector2i(1, 2), sf::Vector2i(2, 2), sf::Vector2i(3, 2), sf::Vector2i(4, 2), sf::Vector2i(5, 2),
-        sf::Vector2i(0, 3), sf::Vector2i(1, 3), sf::Vector2i(2, 3), sf::Vector2i(3, 3), sf::Vector2i(4, 3), sf::Vector2i(5, 3),
-        sf::Vector2i(0, 4), sf::Vector2i(1, 4), sf::Vector2i(2, 4), sf::Vector2i(3, 4), sf::Vector2i(4, 4), sf::Vector2i(5, 4)
-    };
-    tilemap->load(atlas, {16, 16}, tiles.data(), 6, 5);
-    tilemap->setPosition({1920.f / 6.f, 1240.f / 6.f});
-    tilemap->setScale({5.f, 5.f});
-
+    static TextureAtlas atlas("Textures/Tileset.png"); //debug only
+    // static std::shared_ptr<Tilemap> tilemap = std::make_shared<Tilemap>();
+    // constexpr std::array<sf::Vector2i, 30> tiles = {
+    //     sf::Vector2i(0, 0), sf::Vector2i(1, 0), sf::Vector2i(2, 0), sf::Vector2i(3, 0), sf::Vector2i(4, 0), sf::Vector2i(5, 0),
+    //     sf::Vector2i(0, 1), sf::Vector2i(1, 1), sf::Vector2i(2, 1), sf::Vector2i(3, 1), sf::Vector2i(4, 1), sf::Vector2i(5, 1),
+    //     sf::Vector2i(0, 2), sf::Vector2i(1, 2), sf::Vector2i(2, 2), sf::Vector2i(3, 2), sf::Vector2i(4, 2), sf::Vector2i(5, 2),
+    //     sf::Vector2i(0, 3), sf::Vector2i(1, 3), sf::Vector2i(2, 3), sf::Vector2i(3, 3), sf::Vector2i(4, 3), sf::Vector2i(5, 3),
+    //     sf::Vector2i(0, 4), sf::Vector2i(1, 4), sf::Vector2i(2, 4), sf::Vector2i(3, 4), sf::Vector2i(4, 4), sf::Vector2i(5, 4)
+    // };
+    // tilemap->load(atlas, {16, 16}, tiles.data(), 6, 5);
+    // tilemap->setPosition({1920.f / 6.f, 1240.f / 6.f});
+    // tilemap->setScale({5.f, 5.f});
 
     register_manager<RenderManager>();  //maybe should be added first 
     register_manager<WindowEventManager>();     //just an empty node, at least for now
     register_manager<CollisionManager>();
 
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
+    get_manager<RenderManager>()->add_layer("ddun", 1, {1920u, 1240u});
+    get_manager<RenderManager>()->add_layer("ddun_e_r", 2, {1920u, 1240u});
+    get_manager<RenderManager>()->add_layer("ddun_e_c", 3, {1920u, 1240u});
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
     get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps->text));
-    get_manager<RenderManager>()->add_drawable("Debug_ui", tilemap);
+    // get_manager<RenderManager>()->add_drawable("Debug_ui", tilemap);
 
     get_manager<CollisionManager>()->add_layer("Debug_coll", 0);
 
+    register_manager<DungeonManager>(atlas, 10, sf::Vector2u{255u, 255u}, 32);
+
     //for testing collisions
-    root_level.push_back(create<DebugRect>());
-    root_level.push_back(create<DebugCirc>());
+    // root_level.push_back(create<DebugRect>());
+    // root_level.push_back(create<DebugCirc>());
 
     get_manager<WindowEventManager>()->get_event<sf::Event::Closed>()->
         subscribe([&](const sf::Event::Closed& e){close();});
-    get_manager<WindowEventManager>()->get_event<sf::Event::Resized>()->
-        subscribe([&](const sf::Event::Resized& e){get_manager<RenderManager>()->rescale();});
-
-    //uncomment for testing
-    /*
-    get_manager<CollisionManager>()->add_layer("Test Layer", 1);
-    get_manager<CollisionManager>()->add_collider("Test Layer", insert rectangle collider);
-    get_manager<CollisionManager>()->add_collider("Test Layer", insert cirlce collider, preferably following mouse);
-    get_manager<CollisionManager>()->add_collider("Test Layer", insert cirlce collider);
-    /*
+    //get_manager<WindowEventManager>()->get_event<sf::Event::Resized>()->
+    //    subscribe([&](const sf::Event::Resized& e){get_manager<RenderManager>()->rescale();});
+    get_manager<WindowEventManager>()->get_event<sf::Event::KeyPressed>()->
+        subscribe([&](const sf::Event::KeyPressed& e)
+        {
+            if(e.scancode == sf::Keyboard::Scancode::Enter)
+            {
+                get_manager<DungeonManager>()->move({0, 0});
+            }
+            else if(e.scancode == sf::Keyboard::Scancode::Up)
+            {
+                get_manager<DungeonManager>()->move({0, 1});
+            }
+            else if(e.scancode == sf::Keyboard::Scancode::Down)
+            {
+                get_manager<DungeonManager>()->move({0, -1});
+            }
+            else if(e.scancode == sf::Keyboard::Scancode::Right)
+            {
+                get_manager<DungeonManager>()->move({-1, 0});
+            }
+            else if(e.scancode == sf::Keyboard::Scancode::Left)
+            {
+                get_manager<DungeonManager>()->move({1, 0});
+            }
+        });
     //********************************************/
 }
 
