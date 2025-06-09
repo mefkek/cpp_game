@@ -2,21 +2,14 @@
 #include "Nodes/Node.hpp"
 #include <SFML/Graphics.hpp>
 
-class Label : public Node
+class Label : public virtual Node, public sf::Text
 {
+private:
+    std::string layer_name;
+
 public:
-    Label(const std::string layer_name, const sf::Font& font, unsigned int size = 30, const std::string& content = "");
-
-    void set_position(const sf::Vector2f& position);
-    void set_color(const sf::Color& color);
-    void set_string(const std::string& str);
-    void set_character_size(unsigned int size);
-
-    sf::FloatRect get_global_bounds() const;
-    std::string get_text();
+    Label(const std::string layer_name, const sf::Font& font, const std::string& content = "", unsigned int size = 30);
+    void initialize() override;
 
     void update(float) override;
-
-private:
-    std::shared_ptr<sf::Text> text;
 };
