@@ -11,6 +11,17 @@
 
 constexpr sf::Vector2f debug_disp_scale = {5.f, 5.f};
 
+DungeonManager::DungeonManager(const TextureAtlas& atlas, std::size_t seed, sf::Vector2u dungeon_size,
+                               unsigned int chunk_size, sf::Vector2i player_pos)
+                               : dungeon_seed(seed), dungeon_size(dungeon_size), chunk_size(chunk_size),
+                                 pos_dungeon(player_pos)
+{
+    this->loaded_chunks.resize(9);
+
+    chunk_getter = std::make_unique<ChunkGenerator>(chunk_size, dungeon_size, dungeon_seed);
+    visualizer = std::make_unique<RoomVisualizer>(atlas);
+}
+
 void DungeonManager::reload_chunks()
 {
     std::array<sf::Vector2i, 9> dirs = 
@@ -50,16 +61,6 @@ void DungeonManager::reload_chunks()
 
 void DungeonManager::initialize()
 {
-    this->loaded_chunks.resize(9);
-    this->dungeon_seed = 10;    //for debugging only
-    this->dungeon_size = {2, 2};
-    this->chunk_size = 32;
-    pos_dungeon = {0, 0};
-
-    static TextureAtlas atlas("Textures/Tileset.png");   //debug only
-
-    chunk_getter = std::make_unique<ChunkGenerator>(chunk_size, dungeon_size, dungeon_seed);
-    visualizer = std::make_unique<RoomVisualizer>(atlas);
     reload_chunks();
 
     sf::Vector2i closest_room = {0, 0};

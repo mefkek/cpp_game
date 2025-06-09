@@ -4,7 +4,7 @@
 #include <random>
 #include <algorithm>
 
-RoomVisualizer::RoomVisualizer(TextureAtlas& tileset)
+RoomVisualizer::RoomVisualizer(const TextureAtlas& tileset)
     : tileset(tileset), map_tilemap(std::make_shared<Tilemap>()), room_tilemap(std::make_shared<Tilemap>())
 {
     std::mt19937 rd(2137);

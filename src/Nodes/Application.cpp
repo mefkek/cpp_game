@@ -24,7 +24,7 @@ void Application::initialize()
     fps->set_position({15, 15});
     root_level.push_back(fps);
 
-    // static TextureAtlas atlas("build/runtime_files/Dungeon_Tileset.png");
+    static TextureAtlas atlas("Textures/Tileset.png"); //debug only
     // static std::shared_ptr<Tilemap> tilemap = std::make_shared<Tilemap>();
     // constexpr std::array<sf::Vector2i, 30> tiles = {
     //     sf::Vector2i(0, 0), sf::Vector2i(1, 0), sf::Vector2i(2, 0), sf::Vector2i(3, 0), sf::Vector2i(4, 0), sf::Vector2i(5, 0),
@@ -51,7 +51,7 @@ void Application::initialize()
 
     get_manager<CollisionManager>()->add_layer("Debug_coll", 0);
 
-    register_manager<DungeonManager>();
+    register_manager<DungeonManager>(atlas, 10, sf::Vector2u{255u, 255u}, 32);
 
     //for testing collisions
     // root_level.push_back(create<DebugRect>());
