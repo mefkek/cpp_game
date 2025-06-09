@@ -4,8 +4,11 @@
 
 class MouseCollider : public CircleCollider
 {
+private:
+    int updated = false;
 public:
     using CircleCollider::CircleCollider;
+    void update(float delta) override;
     void on_collision(const std::weak_ptr<Collider> other) override;
 };
 
