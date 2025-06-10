@@ -157,7 +157,7 @@ void DebugRect::initialize()
     //undo the transform becouse we want the colliders to be positioned in window cooridinates
     trigger = add_child<DebugTrigger>(pos, sf::Vector2f(250.f * scale.x, 250.f * scale.y)).lock();
     Application::instance().get_manager<RenderManager>()->add_drawable("Debug_ui", shape);
-    Application::instance().get_manager<CollisionManager>()->add_collider("Debug_coll", trigger);
+    Application::instance().get_manager<CollisionManager>()->add_collider("Debug_coll_trig", trigger);
 
     //same in logic applies to the circle
 }

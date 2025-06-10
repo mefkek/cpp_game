@@ -10,6 +10,7 @@
 //debug
 #include "Nodes/MouseCollider.hpp"
 #include "Nodes/Icon.hpp"
+#include "Nodes/Button.hpp"
 
 std::mutex Application::application_mutex;
 
@@ -28,6 +29,7 @@ void Application::initialize()
     fps->set_position({15, 15});
     root_level.push_back(fps);
     */
+    static sf::Font font("Fonts/ARIAL.TTF");
 
     static TextureAtlas atlas("build/runtime_files/Dungeon_Tileset.png");
     static std::shared_ptr<Tilemap> tilemap = std::make_shared<Tilemap>();
@@ -51,18 +53,28 @@ void Application::initialize()
     //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
     get_manager<RenderManager>()->add_drawable("Debug_ui", tilemap);
 
-    get_manager<CollisionManager>()->add_layer("Debug_coll", 0);
+    get_manager<CollisionManager>()->add_layer("Debug_coll_trig", 0);
+    get_manager<CollisionManager>()->add_layer("Debug_coll_coll", 1);
 
     //for testing collisions
     root_level.push_back(create<DebugRect>());
-    //root_level.push_back(create<DebugCirc>());
-    root_level.push_back(create<MouseCursor>("Debug_ui", "Debug_coll"));
-    root_level.push_back(create<FPSCounter>());
+    static auto mm = create<MouseCursor>("Debug_ui", "Debug_coll_coll");
+    root_level.push_back(mm);
+    root_level.push_back(create<FPSCounter>("Debug_ui", font));
 
     auto ico = create<Icon>("Debug_ui", atlas.get_texture(), sf::IntRect{{0, 0}, {32, 32}});
-    ico->set_scale({5.f, 5.f});
-    ico->set_position({1600.f, 0.f});
+    ico->setScale({5.f, 5.f});
+    ico->setPosition({1600.f, 0.f});
     root_level.push_back(ico);
+
+    auto button = create<Button>("Debug_ui", font, atlas.get_texture(), sf::Vector2f{200.f, 200.f},
+        [](const std::weak_ptr<Collider> o){Logger::log(Logger::MessageType::Info, "Button pressed");},
+        [](const std::weak_ptr<Collider> o){Logger::log(Logger::MessageType::Info, "Button touched");},
+        [](const std::weak_ptr<Collider> o){Logger::log(Logger::MessageType::Info, "Button untouched");},
+        "Button", 50, sf::IntRect{{6 * 16, 3 * 16}, {32, 16}});
+    button->setPosition(static_cast<sf::Vector2f>(window.getSize()) / 2.f);
+    button->label->setFillColor(sf::Color::Red);
+    root_level.push_back(button);
 
     get_manager<WindowEventManager>()->get_event<sf::Event::Closed>()->
         subscribe([&](const sf::Event::Closed& e){close();});
