@@ -25,6 +25,6 @@ int main()
         std::string msg(e.what());
         Logger::log(Logger::MessageType::Error, Logger::prep_message(msg));
     }
-    
+
     return 0;
 }

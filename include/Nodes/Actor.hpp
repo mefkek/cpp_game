@@ -1,8 +1,11 @@
 #pragma once
 
+#include <SFML/Graphics.hpp>
+
 #include "Nodes/Node.hpp"
 #include "Nodes/ActorRace.hpp"
 #include "Nodes/ActorBehaviour.hpp"
+#include "Nodes/TextureAtlas.hpp"
 
 #include <unordered_map>
 #include <string>
@@ -18,7 +21,8 @@ class Actor : public Node
 {
 public:
     // Construct with a race and initial behavior.
-    Actor(ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour);
+    Actor(ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour, const TextureAtlas& atlas, sf::Vector2i rect, const std::string& display_layer);
+    Actor(ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour, const TextureAtlas& atlas, sf::IntRect rect, const std::string& display_layer);
     ~Actor() override = default;
 
     // Called once per frame.
@@ -29,6 +33,7 @@ public:
 
     // Query this actor’s race.
     ActorRaceEnum getRace() const;
+    std::shared_ptr<sf::Sprite> getSprite() const;
 
     std::string toString() const;
 
@@ -36,6 +41,7 @@ public:
 
 
 protected:
+    Actor(ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour);
     // Hook after a successful stat change.
     virtual void onStatChange(const std::string& name, int newValue) {}
 
@@ -46,6 +52,7 @@ private:
     ActorRaceEnum                       race_;
     std::shared_ptr<ActorBehaviour>     behaviour_;
     std::unordered_map<std::string,int> stats_;
+    std::shared_ptr<sf::Sprite>         sprite_;
 };
 
 struct DummyBehaviour : public ActorBehaviour

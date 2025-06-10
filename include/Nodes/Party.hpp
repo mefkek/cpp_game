@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SFML/Graphics.hpp>
 #include "Nodes/ContainerNode.hpp"
 #include "Nodes/Actor.hpp"
 
@@ -8,6 +9,5 @@
 class Party : public ContainerNode<Actor>
 {
 public:
-    Party() = default;
-    ~Party() override = default;
+    void display(sf::Vector2f position, sf::Vector2f facing);
 };

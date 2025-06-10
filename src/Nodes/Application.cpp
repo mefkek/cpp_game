@@ -2,6 +2,7 @@
 #include "Nodes/RenderManager.hpp"
 #include "Nodes/CollisionManager.hpp"
 #include "DungeonManager/DungeonManager.hpp"
+#include "Nodes/ActorManager.hpp"
 #include "Nodes/FPSCounter.hpp"
 #include "Tilemap/Tilemap.hpp"
 #include "Events.hpp"
@@ -25,21 +26,11 @@ void Application::initialize()
     root_level.push_back(fps);
 
     static TextureAtlas atlas("Textures/Tileset.png"); //debug only
-    // static std::shared_ptr<Tilemap> tilemap = std::make_shared<Tilemap>();
-    // constexpr std::array<sf::Vector2i, 30> tiles = {
-    //     sf::Vector2i(0, 0), sf::Vector2i(1, 0), sf::Vector2i(2, 0), sf::Vector2i(3, 0), sf::Vector2i(4, 0), sf::Vector2i(5, 0),
-    //     sf::Vector2i(0, 1), sf::Vector2i(1, 1), sf::Vector2i(2, 1), sf::Vector2i(3, 1), sf::Vector2i(4, 1), sf::Vector2i(5, 1),
-    //     sf::Vector2i(0, 2), sf::Vector2i(1, 2), sf::Vector2i(2, 2), sf::Vector2i(3, 2), sf::Vector2i(4, 2), sf::Vector2i(5, 2),
-    //     sf::Vector2i(0, 3), sf::Vector2i(1, 3), sf::Vector2i(2, 3), sf::Vector2i(3, 3), sf::Vector2i(4, 3), sf::Vector2i(5, 3),
-    //     sf::Vector2i(0, 4), sf::Vector2i(1, 4), sf::Vector2i(2, 4), sf::Vector2i(3, 4), sf::Vector2i(4, 4), sf::Vector2i(5, 4)
-    // };
-    // tilemap->load(atlas, {16, 16}, tiles.data(), 6, 5);
-    // tilemap->setPosition({1920.f / 6.f, 1240.f / 6.f});
-    // tilemap->setScale({5.f, 5.f});
 
-    register_manager<RenderManager>();  //maybe should be added first 
+    register_manager<RenderManager>();  //maybe should be added first
     register_manager<WindowEventManager>();     //just an empty node, at least for now
     register_manager<CollisionManager>();
+    register_manager<ActorManager>();
 
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
     get_manager<RenderManager>()->add_layer("ddun", 1, {1920u, 1240u});
@@ -85,7 +76,23 @@ void Application::initialize()
                 get_manager<DungeonManager>()->move({1, 0});
             }
         });
+
+    std::vector<std::shared_ptr<Actor>> partyVec{
+        std::make_shared<Actor>(ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"),
+        std::make_shared<Actor>(ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"),
+        std::make_shared<Actor>(ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"),
+        std::make_shared<Actor>(ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui")
+    };
+    auto p = get_manager<ActorManager>()->addParty(partyVec);
     //********************************************/
+    p->display({450, 340}, {1, 0});
+    for(auto pp : p->get_children())
+    {
+        if(auto ptr = std::dynamic_pointer_cast<Actor>(pp))
+        {
+            ptr->getSprite()->setScale({10.f, 10.f});
+        }
+    }
 }
 
 Application& Application::instance()

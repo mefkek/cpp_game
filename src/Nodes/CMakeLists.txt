@@ -1,14 +1,15 @@
 set(SOURCES
-    Node.cpp
-    Application.cpp
-    RenderManager.cpp
-    FPSCounter.cpp
-    TextureAtlas.cpp
-    Colliders.cpp
-    CollisionManager.cpp
-    TriggerArea.cpp
-    ActorManager.cpp
-    Actor.cpp
+        Node.cpp
+        Application.cpp
+        RenderManager.cpp
+        FPSCounter.cpp
+        TextureAtlas.cpp
+        Colliders.cpp
+        CollisionManager.cpp
+        TriggerArea.cpp
+        ActorManager.cpp
+        Actor.cpp
+        Party.cpp
 )
 
 add_library(Nodes ${SOURCES})

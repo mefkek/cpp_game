@@ -11,14 +11,13 @@
 class ActorManager : public Node
 {
 public:
-    ActorManager();
+    ActorManager() = default;
     ~ActorManager() override = default;
 
+    void update(float delta) override;
     void initialize() override;
 
-    // Spawn a new Actor and assign it to the appropriate Party.
-    std::shared_ptr<Actor> addActor(ActorRaceEnum race,
-                                    std::shared_ptr<ActorBehaviour> behaviour);
+    std::shared_ptr<Party> addParty(std::vector<std::shared_ptr<Actor>>& actors);
 
 
 

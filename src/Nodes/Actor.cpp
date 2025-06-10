@@ -1,3 +1,5 @@
+#include "Nodes/Application.hpp"
+#include "Nodes/RenderManager.hpp"
 #include "Nodes/Actor.hpp"
 #include "Utility/Logger.hpp"
 
@@ -8,6 +10,22 @@ Actor::Actor(ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour)
     // Default stat initialization
     stats_["HP"]     = 100;
     stats_["Attack"] = 10;
+}
+
+Actor::Actor(ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour, const TextureAtlas& atlas,
+    sf::Vector2i rect, const std::string& display_layer)
+    : Actor(race, behaviour)
+{
+    atlas.set_rect(sprite_, rect);
+    Application::instance().get_manager<RenderManager>()->add_drawable(display_layer, sprite_);
+}
+
+Actor::Actor(ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour, const TextureAtlas& atlas,
+    sf::IntRect rect, const std::string& display_layer)
+    : Actor(race, behaviour)
+{
+    atlas.set_rect(sprite_, rect);
+    Application::instance().get_manager<RenderManager>()->add_drawable(display_layer, sprite_);
 }
 
 void Actor::update(float delta)
@@ -44,6 +62,11 @@ void Actor::changeStat(const std::string& name, int delta)
 ActorRaceEnum Actor::getRace() const
 {
     return race_;
+}
+
+std::shared_ptr<sf::Sprite> Actor::getSprite() const
+{
+    return sprite_;
 }
 
 std::string Actor::toString() const
