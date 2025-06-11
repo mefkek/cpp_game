@@ -1,4 +1,4 @@
-#include "Nodes/FPSCounter.hpp"
+#include "../../include/Ui/FPSCounter.hpp"
 #include "Nodes/RenderManager.hpp"
 #include "Utility/Exceptions.hpp"
 #include <iomanip>

@@ -1,4 +1,4 @@
-#include "Nodes/Label.hpp"
+#include "../../include/Ui/Label.hpp"
 #include "Nodes/RenderManager.hpp"
 #include "Nodes/Application.hpp"
 

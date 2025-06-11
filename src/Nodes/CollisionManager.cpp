@@ -1,5 +1,5 @@
 #include "Nodes/CollisionManager.hpp"
-#include "Nodes/MouseCollider.hpp"
+#include "../../include/Ui/MouseCollider.hpp"
 #include <algorithm>
 #include <cmath>
 #include <memory>

@@ -1,6 +1,6 @@
-#include "Nodes/Button.hpp"
-#include "Nodes/ButtonColliders.hpp"
-#include "Nodes/MouseCollider.hpp"
+#include "../../include/Ui/Button.hpp"
+#include "../../include/Ui/ButtonColliders.hpp"
+#include "../../include/Ui/MouseCollider.hpp"
 
 Button::Button(const std::string layer_name, const sf::Font& font, const sf::Texture& texture, sf::Vector2f size,
                func on_pressed, func on_mouse_entered, func on_mouse_left,

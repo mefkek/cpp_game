@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Node.hpp"
-#include "Nodes/Label.hpp"
+#include "../Nodes/Node.hpp"
+#include "Label.hpp"
 #include <SFML/Graphics.hpp>
 #include <memory>
 

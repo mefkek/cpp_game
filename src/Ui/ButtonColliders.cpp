@@ -1,4 +1,4 @@
-#include "Nodes/ButtonColliders.hpp"
+#include "../../include/Ui/ButtonColliders.hpp"
 
 ButtonCollider::ButtonCollider(sf::Vector2f size, sf::Vector2f pos) : RectangleCollider(pos, size) {}
 

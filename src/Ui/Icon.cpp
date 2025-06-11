@@ -1,4 +1,4 @@
-#include "Nodes/Icon.hpp"
+#include "../../include/Ui/Icon.hpp"
 #include "Nodes/RenderManager.hpp"
 #include "Nodes/Application.hpp"
 

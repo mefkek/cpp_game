@@ -1,6 +1,6 @@
 #pragma once
-#include "Colliders.hpp"
-#include "TriggerArea.hpp"
+#include "../Nodes/Colliders.hpp"
+#include "../Nodes/TriggerArea.hpp"
 
 class ButtonCollider : public RectangleCollider
 {

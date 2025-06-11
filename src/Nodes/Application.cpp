@@ -1,16 +1,16 @@
 #include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
 #include "Nodes/CollisionManager.hpp"
-#include "Nodes/FPSCounter.hpp"
+#include "../../include/Ui/FPSCounter.hpp"
 #include "Tilemap/Tilemap.hpp"
 #include "Events.hpp"
 #include <stack>
 #include <array>
 
 //debug
-#include "Nodes/MouseCollider.hpp"
-#include "Nodes/Icon.hpp"
-#include "Nodes/Button.hpp"
+#include "../../include/Ui/MouseCollider.hpp"
+#include "Ui/Icon.hpp"
+#include "../../include/Ui/Button.hpp"
 
 std::mutex Application::application_mutex;
 

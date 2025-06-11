@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "Node.hpp"
+#include "../Nodes/Node.hpp"
 #include <memory>
 
 class Icon : public virtual Node, public sf::Sprite

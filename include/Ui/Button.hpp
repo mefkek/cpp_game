@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "Nodes/Icon.hpp"
-#include "Nodes/Label.hpp"
+#include "Icon.hpp"
+#include "Label.hpp"
 #include "Nodes/CollisionManager.hpp"
 
 

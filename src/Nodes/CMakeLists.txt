@@ -1,20 +1,9 @@
-set(SOURCES
-    Node.cpp
-    Application.cpp
-    RenderManager.cpp
-    FPSCounter.cpp
-    TextureAtlas.cpp
-    Colliders.cpp
-    CollisionManager.cpp
-    TriggerArea.cpp
-        MouseCollider.cpp
-        Label.cpp
-        Icon.cpp
-        ButtonColliders.cpp
-        Button.cpp
+#include all .cpp file in current directory
+file(GLOB SOURCES
+        *.cpp
 )
 
 add_library(Nodes ${SOURCES})
 
 target_include_directories(Nodes PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(Nodes PUBLIC SFML::Graphics)
+target_link_libraries(Nodes PUBLIC SFML::Graphics Ui)
