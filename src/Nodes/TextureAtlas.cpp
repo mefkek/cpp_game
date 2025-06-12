@@ -9,7 +9,7 @@ TextureAtlas::TextureAtlas(const std::filesystem::path& filepath, sf::Vector2i t
     }
 }
 
-void TextureAtlas::set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::IntRect rect) 
+void TextureAtlas::set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::IntRect rect) const
 {
     if(!sprite)
     {
@@ -23,7 +23,7 @@ void TextureAtlas::set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::IntRect rec
     sprite->setTextureRect(rect);
 }
 
-void TextureAtlas::set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::Vector2i cords)
+void TextureAtlas::set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::Vector2i cords) const
 {
     if(!sprite)
     {

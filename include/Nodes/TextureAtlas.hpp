@@ -7,8 +7,8 @@ class TextureAtlas
     public:
     TextureAtlas(const std::filesystem::path&, sf::Vector2i tile_size = {16, 16});
 
-    void set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::IntRect rect);
-    void set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::Vector2i cords);
+    void set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::IntRect rect) const;
+    void set_rect(std::shared_ptr<sf::Sprite>& sprite, sf::Vector2i cords) const;
 
     const sf::Texture& get_texture() const;
 
