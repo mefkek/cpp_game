@@ -51,7 +51,10 @@ void Button::on_pressed(const std::weak_ptr<Collider> other)
     {
         if(auto ptr = std::dynamic_pointer_cast<MouseCollider>(p))
         {
-            on_pressed_func(other);
+            if(on_pressed_func)
+            {
+                on_pressed_func(other);
+            }
         }
     }
 }
@@ -64,7 +67,10 @@ void Button::on_mouse_entered(const std::weak_ptr<Collider> other)
         {
             if(auto cursor = std::dynamic_pointer_cast<MouseCursor>(t_area->get_parent().lock()))
             {
-                on_mouse_entered_func(other);
+                if(on_mouse_entered_func)
+                {
+                    on_mouse_entered_func(other);
+                }
             }
         }
     }
@@ -78,7 +84,10 @@ void Button::on_mouse_left(const std::weak_ptr<Collider> other)
         {
             if(auto cursor = std::dynamic_pointer_cast<MouseCursor>(t_area->get_parent().lock()))
             {
-                on_mouse_left_func(other);
+                if(on_mouse_entered_func)
+                {
+                    on_mouse_left_func(other);
+                }
             }
         }
     }

@@ -69,8 +69,9 @@ void Application::initialize()
 
     auto button = create<Button>("Debug_ui", font, atlas.get_texture(), sf::Vector2f{200.f, 200.f},
         [](const std::weak_ptr<Collider> o){Logger::log(Logger::MessageType::Info, "Button pressed");},
-        [](const std::weak_ptr<Collider> o){Logger::log(Logger::MessageType::Info, "Button touched");},
-        [](const std::weak_ptr<Collider> o){Logger::log(Logger::MessageType::Info, "Button untouched");},
+        //[](const std::weak_ptr<Collider> o){Logger::log(Logger::MessageType::Info, "Button touched");},
+        //[](const std::weak_ptr<Collider> o){Logger::log(Logger::MessageType::Info, "Button untouched");},
+        nullptr, nullptr,
         "Button", 50, sf::IntRect{{6 * 16, 3 * 16}, {32, 16}});
     button->setPosition(static_cast<sf::Vector2f>(window.getSize()) / 2.f);
     button->label->setFillColor(sf::Color::Red);
