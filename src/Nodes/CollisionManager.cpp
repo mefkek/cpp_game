@@ -1,11 +1,10 @@
 #include "Nodes/CollisionManager.hpp"
+#include "../../include/Ui/MouseCollider.hpp"
 #include <algorithm>
 #include <cmath>
 #include <memory>
 // === CollisionManager ===
 
-/// Perform collision detection between all colliders.
-/// This is currently just a placeholder.
 void CollisionManager::collide()
 {
     for (auto& [id, layer] : collision_layers)
@@ -25,8 +24,8 @@ void CollisionManager::collide()
                 for (size_t j = i + 1; j < colliders.size(); ++j)
                 {
                     if(auto b = colliders[j].lock())
-                    {                    
-                        if (a->collides_with(b)) 
+                    {
+                        if (a->collides_with(b))
                         {
                             a->get_on_collision_event().lock()->rise(b);
                             b->get_on_collision_event().lock()->rise(a);
@@ -144,7 +143,7 @@ void DebugRect::initialize()
     sf::RenderTexture& tex = Application::instance().get_manager<RenderManager>()->
                              get_render_texture("Debug_ui");
 
-    sf::Vector2f pos = {window.getSize().x / 2.f,window.getSize().y / 2.f};
+    sf::Vector2f pos = {window.getSize().x / 5.f,window.getSize().y / 2.f};
     sf::Vector2f scale = Application::instance().get_manager<RenderManager>()->
                          get_render_sprite("Debug_ui").getScale();
 
@@ -158,7 +157,7 @@ void DebugRect::initialize()
     //undo the transform becouse we want the colliders to be positioned in window cooridinates
     trigger = add_child<DebugTrigger>(pos, sf::Vector2f(250.f * scale.x, 250.f * scale.y)).lock();
     Application::instance().get_manager<RenderManager>()->add_drawable("Debug_ui", shape);
-    Application::instance().get_manager<CollisionManager>()->add_collider("Debug_coll", trigger);
+    Application::instance().get_manager<CollisionManager>()->add_collider("Debug_coll_trig", trigger);
 
     //same in logic applies to the circle
 }

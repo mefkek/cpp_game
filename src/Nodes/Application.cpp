@@ -3,55 +3,44 @@
 #include "Nodes/CollisionManager.hpp"
 #include "DungeonManager/DungeonManager.hpp"
 #include "Nodes/ActorManager.hpp"
-#include "Nodes/FPSCounter.hpp"
+#include "../../include/Ui/FPSCounter.hpp"
 #include "Tilemap/Tilemap.hpp"
 #include "Events.hpp"
 #include <stack>
 #include <array>
 
+//debug
+#include "../../include/Ui/MouseCollider.hpp"
+#include "Ui/Icon.hpp"
+#include "../../include/Ui/Button.hpp"
+
 std::mutex Application::application_mutex;
 
 void Application::initialize()
 {
-    /*
-        If you want to have a bad time add a node here, i dare you
-    */
     window = sf::RenderWindow(sf::VideoMode({640 * 2, 360 * 2}), "CMake SFML Project");
     window.setVerticalSyncEnabled(true);
 
-    //This block can stay for now, but this should be handled properly later on
-    //(program argumetns -d as an separete debug node maybe?)
-    std::shared_ptr<FPSCounter> fps = std::make_shared<FPSCounter>();
-    fps->set_position({15, 15});
-    root_level.push_back(fps);
-
+    static sf::Font font("Fonts/ARIAL.TTF");
     static TextureAtlas atlas("Textures/Tileset.png"); //debug only
 
-    register_manager<RenderManager>();  //maybe should be added first
-    register_manager<WindowEventManager>();     //just an empty node, at least for now
+    register_manager<RenderManager>();
+    register_manager<WindowEventManager>(); 
     register_manager<CollisionManager>();
+    register_manager<DungeonManager>(atlas, 10, sf::Vector2u{255u, 255u}, 32);
     register_manager<ActorManager>();
 
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
-    get_manager<RenderManager>()->add_layer("ddun", 1, {1920u, 1240u});
-    get_manager<RenderManager>()->add_layer("ddun_e_r", 2, {1920u, 1240u});
-    get_manager<RenderManager>()->add_layer("ddun_e_c", 3, {1920u, 1240u});
-    //priority is 250 so any popup window (e.g. pause menu) will go on top of the debug info
-    get_manager<RenderManager>()->add_drawable("Debug_ui", std::weak_ptr<sf::Text>(fps->text));
-    // get_manager<RenderManager>()->add_drawable("Debug_ui", tilemap);
 
-    get_manager<CollisionManager>()->add_layer("Debug_coll", 0);
+    get_manager<CollisionManager>()->add_layer("Debug_coll_trig", 0);
+    get_manager<CollisionManager>()->add_layer("Debug_coll_coll", 0);
 
-    register_manager<DungeonManager>(atlas, 10, sf::Vector2u{255u, 255u}, 32);
-
-    //for testing collisions
-    // root_level.push_back(create<DebugRect>());
-    // root_level.push_back(create<DebugCirc>());
+    root_level.push_back(create<MouseCursor>("Debug_ui", "Debug_coll_coll"));
+    root_level.push_back(create<FPSCounter>("Debug_ui", font));
 
     get_manager<WindowEventManager>()->get_event<sf::Event::Closed>()->
         subscribe([&](const sf::Event::Closed& e){close();});
-    //get_manager<WindowEventManager>()->get_event<sf::Event::Resized>()->
-    //    subscribe([&](const sf::Event::Resized& e){get_manager<RenderManager>()->rescale();});
+
     get_manager<WindowEventManager>()->get_event<sf::Event::KeyPressed>()->
         subscribe([&](const sf::Event::KeyPressed& e)
         {
