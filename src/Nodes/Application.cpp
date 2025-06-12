@@ -77,22 +77,26 @@ void Application::initialize()
             }
         });
 
-    std::vector<std::shared_ptr<Actor>> partyVec{
-        std::make_shared<Actor>(ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"),
-        std::make_shared<Actor>(ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"),
-        std::make_shared<Actor>(ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"),
-        std::make_shared<Actor>(ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui")
+    std::vector<Actor> partyVec{
+        //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
+        {ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
+        {ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
+        {ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
+        {ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"}
     };
     auto p = get_manager<ActorManager>()->addParty(partyVec);
+
+    std::vector<Actor> enemy_party_vec{
+        //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
+        //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
+        //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
+        {ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
+        {ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"}
+    };
+    auto ep = get_manager<ActorManager>()->addParty(enemy_party_vec);
     //********************************************/
-    p->display({450, 340}, {1, 0});
-    for(auto pp : p->get_children())
-    {
-        if(auto ptr = std::dynamic_pointer_cast<Actor>(pp))
-        {
-            ptr->getSprite()->setScale({10.f, 10.f});
-        }
-    }
+    p->display({300.f, 340.f}, {5.f, 5.f}, {10.f, 10.f});
+    ep->display({300.f + 750.f, 340.f}, {-5.f, 5.f}, {-10.f, 10.f});
 }
 
 Application& Application::instance()

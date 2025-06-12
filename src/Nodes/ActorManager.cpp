@@ -16,12 +16,15 @@ void ActorManager::update(float delta)
 
 }
 
-std::shared_ptr<Party> ActorManager::addParty(std::vector<std::shared_ptr<Actor>>& actors)
+std::shared_ptr<Party> ActorManager::addParty(std::vector<Actor>& actors)
 {
     auto party = add_child<Party>().lock();
     for(auto& actor : actors)
     {
-        party->get_children().push_back(std::static_pointer_cast<Node>(actor)); //would not let me pass a shared_ptr
+        if(!party->add_actor(actor))
+        {
+            break;
+        }
     }
 
     return party;
