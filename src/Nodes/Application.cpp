@@ -3,7 +3,7 @@
 #include "Nodes/CollisionManager.hpp"
 #include "DungeonManager/DungeonManager.hpp"
 #include "../../include/Ui/FPSCounter.hpp"
-#include "Tilemap/Tilemap.hpp"
+
 #include "Events.hpp"
 #include <stack>
 #include <array>
@@ -15,13 +15,12 @@
 
 std::mutex Application::application_mutex;
 
+Application::Application() : font("Fonts/ARIAL.TTF"), atlas("Textures/Tileset.png") {}
+
 void Application::initialize()
 {
     window = sf::RenderWindow(sf::VideoMode({640 * 2, 360 * 2}), "CMake SFML Project");
     window.setVerticalSyncEnabled(true);
-
-    static sf::Font font("Fonts/ARIAL.TTF");
-    static TextureAtlas atlas("Textures/Tileset.png"); //debug only
 
     register_manager<RenderManager>();
     register_manager<WindowEventManager>(); 
