@@ -1,43 +1,57 @@
-#include "Animation§.hpp"
+#include <SFML/Graphics.hpp>
+#include "include/Graphics/Animation.hpp""
 
-AnimationComponent::AnimationComponent(std::shared_ptr<sf::Sprite> sprite,
-                                       const TextureAtlas& atlas,
-                                       const std::vector<sf::Vector2i>& frames,
-                                       float frame_time,
-                                       bool loop)
-    : sprite(sprite), atlas(atlas), frames(frames), frame_time(frame_time), loop(loop)
-{
-    if (!frames.empty()) {
-        atlas.set_rect(sprite, frames[0]);
-    }
+Animation::Animation(std::shared_ptr<sf::Sprite> animated_sprite,
+                     const TextureAtlas &texture_atlas,
+                     const std::vector<sf::Vector2i> &animation_frames,
+                     float frame_duration,
+                     bool is_looping)
+    : sprite(animated_sprite), atlas(texture_atlas), frames(animation_frames),
+      frame_time(frame_duration), loop(is_looping), elapsed_time(0.f), current_frame(0) {
+    set_first_frame();
 }
+void Animation::update(float delta_time) {
+    const size_t total_frames = frames.size();
+    if (total_frames <= 1) return;
 
-void AnimationComponent::update(float delta)
-{
-    if (frames.size() <= 1) return;
-
-    elapsed_time += delta;
-    if (elapsed_time >= frame_time)
-    {
+    elapsed_time += delta_time;
+    if (elapsed_time >= frame_time) {
         elapsed_time -= frame_time;
         current_frame++;
 
-        if (current_frame >= frames.size()) {
-            if (loop)
-                current_frame = 0;
-            else
-                current_frame = frames.size() - 1;
+        if (current_frame >= total_frames) {
+            current_frame = loop ? 0 : total_frames - 1;
         }
-
         atlas.set_rect(sprite, frames[current_frame]);
     }
 }
-
-void AnimationComponent::reset()
-{
+void Animation::reset() {
     elapsed_time = 0.f;
     current_frame = 0;
+    set_first_frame();
+}
+
+void Animation::set_first_frame() {
     if (!frames.empty()) {
         atlas.set_rect(sprite, frames[0]);
     }
+}
+
+Animation Animation::load_animation(const std::string &texture_file,
+                                    const std::vector<sf::IntRect> &frame_rects,
+                                    float frame_duration,
+                                    bool is_looping) {
+    auto texture = std::make_unique<sf::Texture>();
+    if (!texture->loadFromFile(texture_file)) {
+        throw std::runtime_error("Failed to load texture file: " + texture_file);
+    }
+
+    auto sprite = std::make_shared<sf::Sprite>(*texture);
+    std::vector<sf::Vector2i> frames;
+    for (const auto &rect: frame_rects) {
+        frames.emplace_back(rect.left, rect.top);
+    }
+
+    TextureAtlas texture_atlas(std::move(texture));
+    return Animation(sprite, texture_atlas, frames, frame_duration, is_looping);
 }

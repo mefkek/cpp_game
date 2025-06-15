@@ -1,9 +1,10 @@
 #pragma once
+#include <SFML/Graphics.hpp>
+#include "Nodes/Node.hpp"
+#include "Nodes/TextureAtlas.hpp"
 #include <vector>
 #include <memory>
-#include <SFML/Graphics.hpp>
-#include "TextureAtlas.hpp"
-#include "Node.hpp"
+
 
 class Animation : public Node
 {
@@ -19,11 +20,17 @@ private:
 
 public:
     Animation(std::shared_ptr<sf::Sprite> sprite,
-                       const TextureAtlas& atlas,
-                       const std::vector<sf::Vector2i>& frames,
-                       float frame_time,
-                       bool loop = true);
+              const TextureAtlas& atlas,
+              const std::vector<sf::Vector2i>& frames,
+              float frame_time,
+              bool loop = true);
 
     void update(float delta) override;
     void reset();
+
+
+    static Animation load_animation(const std::string& texture_file,
+                                    const std::vector<sf::IntRect>& frame_rects,
+                                    float frame_time,
+                                    bool loop = true);
 };
