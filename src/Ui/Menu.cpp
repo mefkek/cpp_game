@@ -60,6 +60,14 @@ void Menu::update(float delta)
         if(auto p = ptr.lock())
         {
             p->setPosition(getPosition());
+            auto prev_it = --it;
+            if(prev_it >= menu_items.begin())
+            {
+                if(auto prev_ptr = (*prev_it).lock())
+                {
+                    p->move({prev_ptr->getGlobalBounds().size.x + 5.f, 0.f});
+                }
+            }
             ++it;
         }
         else
