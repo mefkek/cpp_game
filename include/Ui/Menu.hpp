@@ -18,10 +18,11 @@ class Menu : public ContainerNode<SelectableLabel>, public sf::Transformable
     unsigned long ev_id;
     protected:
     using ContainerNode<SelectableLabel>::add_element;
+    bool ready = false;
     public:
-    bool active;
+    bool active = true;
     void initialize() override;
-    void add_item(const SelectableLabel item);
+    std::weak_ptr<SelectableLabel> add_item(const SelectableLabel item);
     void update(float delta) override;
     ~Menu();
 };

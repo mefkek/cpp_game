@@ -28,6 +28,8 @@ class GameSetupState : public GameStateBase
     int selected_c_size = 0;
     std::array<unsigned int, 4> chunk_sizes = {16, 32, 64, 128};
 
+    std::weak_ptr<SelectableLabel> seed_l, d_size_l, c_size_l;
+
     public:
     GameSetupState();
     void initialize() override;
@@ -38,8 +40,11 @@ class GameState : public GameStateBase
 {
     private:
     unsigned long ev_id;
+
     public:
-    GameState(std::size_t seed, sf::Vector2u dungeon_size, unsigned int chunk_size, sf::Vector2i player_pos = {0, 0});
+    GameState(std::size_t seed, sf::Vector2u dungeon_size, unsigned int chunk_size,
+        sf::Vector2i player_pos_d = {0, 0}, sf::Vector2i player_pos_c = {0, 0});
+    void initialize() override;
     void update(float delta) override;
     ~GameState();
 };

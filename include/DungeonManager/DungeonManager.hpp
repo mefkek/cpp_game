@@ -25,7 +25,7 @@ class DungeonManager : public Node
 
     public:
     DungeonManager(const TextureAtlas& atlas, std::size_t seed, sf::Vector2u dungeon_size,
-                               unsigned int chunk_size, sf::Vector2i player_pos = {0, 0});
+                               unsigned int chunk_size, sf::Vector2i player_pos_d = {0, 0}, sf::Vector2i player_pos_c = {0, 0});
     void initialize() override;
     void update(float delta) override{}
     bool move(sf::Vector2i diff);

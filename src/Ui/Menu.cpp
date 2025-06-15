@@ -10,28 +10,44 @@ SelectableLabel::SelectableLabel(std::function<void()> on_selected, const std::s
 
 void Menu::initialize()
 {
-    ev_id = Application::instance().get_manager<WindowEventManager>()->get_event<sf::Event::KeyPressed>()->
-        subscribe([&](const sf::Event::KeyPressed& e)
+    Application::instance().get_manager<WindowEventManager>()->get_event<sf::Event::KeyReleased>()->subscribe(
+    shared_from_this(),
+    [&](const sf::Event::KeyReleased& e)
+    {
+        if(e.scancode == sf::Keyboard::Scancode::Enter)
+        {
+            if(e.scancode == sf::Keyboard::Scancode::Enter)
+            {
+                if(auto ptr = menu_items[current_selection].lock())
+                {
+                    ptr->func();
+                    return;
+                }
+            }          
+        }
+    });
+
+    Application::instance().get_manager<WindowEventManager>()->get_event<sf::Event::KeyPressed>()->
+        subscribe(shared_from_this(), [&](const sf::Event::KeyPressed& e)
         {
             if(!active)
             {
                 return;
             }
             
-            if(e.scancode == sf::Keyboard::Scancode::Enter)
+            if(auto ptr = menu_items[current_selection].lock())
             {
-                if(auto ptr = menu_items[current_selection].lock())
-                {
-                    ptr->func();
-                }
+                ptr->setScale({1.f, 1.f});
+                ptr->setFillColor(sf::Color::White);
             }
-            else if(e.scancode == sf::Keyboard::Scancode::Up)
-            {
-                ++current_selection;
-            }
-            else if(e.scancode == sf::Keyboard::Scancode::Up)
+
+            if(e.scancode == sf::Keyboard::Scancode::Up)
             {
                 --current_selection;
+            }
+            else if(e.scancode == sf::Keyboard::Scancode::Down)
+            {
+                ++current_selection;
             }
 
             if(current_selection < 0)
@@ -42,32 +58,39 @@ void Menu::initialize()
             {
                 current_selection = 0;
             }
+
+            if(auto ptr = menu_items[current_selection].lock())
+            {
+                ptr->setScale({1.2, 1.2});
+                ptr->setFillColor(sf::Color::Cyan);
+            }
         });
 }
 
-void Menu::add_item(const SelectableLabel item)
+std::weak_ptr<SelectableLabel> Menu::add_item(const SelectableLabel item)
 {
-    std::shared_ptr<SelectableLabel> ptr = std::make_shared<SelectableLabel>(item);
-    menu_items.push_back(ptr);
-    ContainerNode<SelectableLabel>::add_element(ptr);
+    auto ret = ContainerNode<SelectableLabel>::add_element(item);
+    menu_items.push_back(ret);
+    return ret;
 }
 
 void Menu::update(float delta)
 {
-    for(auto it = menu_items.begin(); it != menu_items.end();)
+    if(auto ptr = menu_items[current_selection].lock())
     {
-        auto ptr = *it;
-        if(auto p = ptr.lock())
+        ptr->setScale({1.2, 1.2});
+        ptr->setFillColor(sf::Color::Cyan);
+    }
+    sf::Vector2f current_pos = getPosition();
+
+    for (auto it = menu_items.begin(); it != menu_items.end();)
+    {
+        if (auto p = it->lock())
         {
-            p->setPosition(getPosition());
-            auto prev_it = --it;
-            if(prev_it >= menu_items.begin())
-            {
-                if(auto prev_ptr = (*prev_it).lock())
-                {
-                    p->move({prev_ptr->getGlobalBounds().size.x + 5.f, 0.f});
-                }
-            }
+            p->setPosition(current_pos);
+
+            current_pos.y += p->getGlobalBounds().size.y + 20.f;
+
             ++it;
         }
         else
@@ -79,5 +102,8 @@ void Menu::update(float delta)
 
 Menu::~Menu()
 {
-    Application::instance().get_manager<WindowEventManager>()->get_event<sf::Event::KeyPressed>()->unsubscribe(ev_id);
+    if(Application::instance().get_window().isOpen())
+    {
+        //Application::instance().get_manager<WindowEventManager>()->get_event<sf::Event::KeyPressed>()->unsubscribe(ev_id);
+    }
 }

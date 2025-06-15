@@ -12,9 +12,9 @@
 constexpr sf::Vector2f debug_disp_scale = {5.f, 5.f};
 
 DungeonManager::DungeonManager(const TextureAtlas& atlas, std::size_t seed, sf::Vector2u dungeon_size,
-                               unsigned int chunk_size, sf::Vector2i player_pos)
+                               unsigned int chunk_size, sf::Vector2i player_pos_d, sf::Vector2i player_pos_c)
                                : dungeon_seed(seed), dungeon_size(dungeon_size), chunk_size(chunk_size),
-                                 pos_dungeon(player_pos)
+                                 pos_dungeon(player_pos_d), pos_chunk(player_pos_d)
 {
     this->loaded_chunks.resize(9);
 
