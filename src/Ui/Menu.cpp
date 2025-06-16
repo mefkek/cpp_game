@@ -30,6 +30,10 @@ void Menu::initialize()
     Application::instance().get_manager<WindowEventManager>()->get_event<sf::Event::KeyPressed>()->
         subscribe(shared_from_this(), [&](const sf::Event::KeyPressed& e)
         {
+            if(e.scancode == sf::Keyboard::Scancode::Escape)
+            {
+                return; //protection agains accesing invalid ptr
+            }
             if(!active)
             {
                 return;

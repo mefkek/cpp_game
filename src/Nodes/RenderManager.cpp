@@ -48,7 +48,9 @@ void RenderManager::add_layer(const std::string& name, unsigned char priority, s
 {
     if(layers.count(priority) || string_ref.count(name))
     {
-        throw DuplicateRenderLayerException(name);
+        //throw DuplicateRenderLayerException(name);
+        Logger::log(Logger::MessageType::Warning, "Layer with name ", name, " exists, aborting creation.");
+        return;
     }
 
     string_ref[name] = priority;
@@ -119,15 +121,11 @@ void RenderManager::remove_layer(const std::string& name)
 {
     if(string_ref.count(name))
     {
-        auto it = std::find_if(layers.begin(), layers.end(),
-        [&](const std::pair<const unsigned char, RenderLayer>& other)
+        unsigned char priority = string_ref[name];
+        if(layers.count(priority))
         {
-             return other.first == string_ref[name];
-        });
-
-        if(it != layers.end())
-        {
-            layers.erase(it);
+            string_ref.erase(name);
+            layers.erase(priority);
             return;
         }
     }

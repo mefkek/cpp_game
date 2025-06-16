@@ -9,6 +9,16 @@
 
 constexpr const char layer[] = "Debug_ui";
 
+inline std::string get_path()
+{
+    #ifdef DEBUG
+    std::filesystem::create_directories("build/runtime_files");
+    return "build/runtime_files/save.txt";
+    #else
+    return "save.txt";
+    #endif
+}
+
 void MainMenuState::initialize()
 {
     auto title = add_child<Label>(layer, Application::instance().font, "The Game", 100).lock();
@@ -19,14 +29,8 @@ void MainMenuState::initialize()
     }, layer, Application::instance().font, "Play", 40));
 
     menu_ptr->add_item(SelectableLabel([](){
-        #ifdef DEBUG
-        std::filesystem::create_directories("build/runtime_files");
-        const std::string path = "build/runtime_files/save.txt";
-        #else
-        const std::string path = "save.txt";
-        #endif
 
-        std::ifstream file(path);
+        std::ifstream file(get_path());
 
         if(!file.is_open())
         {
@@ -44,6 +48,7 @@ void MainMenuState::initialize()
 
         Application::instance().get_manager<GameStateManager>()->
             change_state<GameState>(seed, dungeon_size, chunk_size, player_pos_d, player_pos_c);
+        file.close();
     }, layer, Application::instance().font, "Load", 40));
 
     menu_ptr->add_item(SelectableLabel([](){
@@ -157,6 +162,105 @@ void GameState::initialize()
             {
                 Application::instance().get_manager<DungeonManager>()->move({1, 0});
             }
+            else if(e.scancode == sf::Keyboard::Scancode::Escape)
+            {
+                if(pause_menu.lock() == nullptr)
+                {
+                    Application::instance().get_manager<DungeonManager>()->block_movement = true;
+                    pause_text = add_child<Label>(
+                        layer,
+                        Application::instance().font,
+                        "Paused",
+                        120
+                    );
+                    pause_text.lock()->setPosition({
+                        Application::instance().get_window().getSize().x / 2.f,
+                        200.f
+                    });
+
+                    pause_menu = add_child<Menu>();
+                    pause_menu.lock()->add_item(SelectableLabel(
+                        [&](){
+                            Application::instance().get_manager<DungeonManager>()->block_movement = false;
+                            if(auto ptr = pause_menu.lock())
+                            {
+                                ptr->kill();
+                            }
+                            if(auto ptr = pause_text.lock())
+                            {
+                                ptr->kill();
+                            }
+                        },
+                        layer,
+                        Application::instance().font,
+                        "Resume",
+                        60
+                    ));
+                    pause_menu.lock()->add_item(SelectableLabel(
+                        [&](){
+                            Application::instance().get_manager<DungeonManager>()->block_movement = false;
+                            if(auto ptr = pause_menu.lock())
+                            {
+                                ptr->kill();
+                            }
+                            if(auto ptr = pause_text.lock())
+                            {
+                                ptr->kill();
+                            }
+
+                            std::ofstream file(get_path());
+
+                            file << Application::instance().get_manager<DungeonManager>()->as_string();
+                            file.close();
+                        },
+                        layer,
+                        Application::instance().font,
+                        "Save",
+                        60
+                    ));
+                    pause_menu.lock()->add_item(SelectableLabel(
+                        [&](){
+                            Application::instance().get_manager<DungeonManager>()->block_movement = false;
+                            if(auto ptr = pause_menu.lock())
+                            {
+                                ptr->kill();
+                            }
+                            if(auto ptr = pause_text.lock())
+                            {
+                                ptr->kill();
+                            }
+
+                            std::ofstream file(get_path());
+
+                            file << Application::instance().get_manager<DungeonManager>()->as_string();
+                            file.close();
+
+                            Application::instance().get_manager<GameStateManager>()->change_state<MainMenuState>();
+                        },
+                        layer,
+                        Application::instance().font,
+                        "Save and quit to title",
+                        60
+                    ));
+
+                    pause_menu.lock()->setPosition({
+                        pause_text.lock()->getPosition().x,
+                        pause_text.lock()->getPosition().y + pause_text.lock()->getGlobalBounds().size.y + 50.f
+                    });
+                }
+                else
+                {
+                    Application::instance().get_manager<DungeonManager>()->block_movement = false;
+                    if(auto ptr = pause_text.lock())
+                    {
+                        ptr->kill();
+                    }
+                    if(auto ptr = pause_menu.lock())
+                    {
+                        ptr->kill();
+                    }
+                }
+            }
     });
 }
 
@@ -166,4 +270,8 @@ void GameState::update(float delta)
 }
 GameState::~GameState()
 {
+    if(Application::instance().get_window().isOpen())
+    {
+        Application::instance().deregister_manager<DungeonManager>();
+    }
 }

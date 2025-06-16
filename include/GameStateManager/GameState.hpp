@@ -40,6 +40,8 @@ class GameState : public GameStateBase
 {
     private:
     unsigned long ev_id;
+    std::weak_ptr<Label> pause_text;
+    std::weak_ptr<Menu> pause_menu;
 
     public:
     GameState(std::size_t seed, sf::Vector2u dungeon_size, unsigned int chunk_size,

@@ -205,3 +205,14 @@ void RoomVisualizer::move(sf::Vector2i diff, std::shared_ptr<Chunk> current_chun
     map_tilemap->move({diff.x * 16.f * scale.x, diff.y * 16.f * scale.y});
     display_room(current_chunk, chunk_pos);
 }
+
+RoomVisualizer::~RoomVisualizer()
+{
+    if(Application::instance().get_window().isOpen())
+    {
+        auto render = Application::instance().get_manager<RenderManager>();
+
+        render->remove_layer("dungeon_map");
+        render->remove_layer("dungeon_room");
+    }
+}
