@@ -37,9 +37,7 @@ class RenderManager : public Node
 
     void remove_layer(const std::string& name);
 
-    void move_view(const std::string& layer, sf::Vector2f offset);  //basically a camera
-
-    void rescale();
+    void move_view(const std::string& layer, sf::Vector2f offset);
 
     void update(float delta) override;
 };

@@ -18,15 +18,21 @@ RoomVisualizer::RoomVisualizer(const TextureAtlas& tileset)
     auto render = Application::instance().get_manager<RenderManager>();
 
     render->add_layer("dungeon_map", 188, {1920u, 1020u});
-    auto view = render->get_render_texture("dungeon_map").getView();
-    view.setViewport({{0.7f, 0.f}, {0.3f, 0.3f}});
-    render->get_render_texture("dungeon_map").setView(view);
-
+    auto& map_texture = render->get_render_texture("dungeon_map");
+    auto& map_sprite = render->get_render_sprite("dungeon_map");
 
     render->add_layer("dungeon_room", 187, {640u / 2u, 360u / 2u});
-    auto room_view = render->get_render_texture("dungeon_room").getView();
-    room_view.setViewport({{0.f, 0.f}, {0.7f, 0.7f}});
-    render->get_render_texture("dungeon_room").setView(room_view);
+    auto& room_texture = render->get_render_texture("dungeon_room");
+    auto& room_sprite = render->get_render_sprite("dungeon_room");
+
+    auto window_size = static_cast<sf::Vector2f>(Application::instance().get_window().getSize());
+    map_sprite.setScale({window_size.x * 0.3f / map_texture.getSize().x,
+                         window_size.y * 0.3f / map_texture.getSize().y});
+    map_sprite.setPosition({window_size.x * 0.7f, 0.f});
+
+    room_sprite.setScale({window_size.x * 0.7f / room_texture.getSize().x,
+                          window_size.y * 0.7f / room_texture.getSize().y});
+    room_sprite.setPosition({0.f, 0.f});
 
     for(int i = 0; i < 12; ++i)
     {

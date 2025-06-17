@@ -93,7 +93,16 @@ void Menu::update(float delta)
         {
             p->setPosition(current_pos);
 
-            current_pos.y += p->getGlobalBounds().size.y + 20.f;
+            if(alignment == align_center)
+            {
+                p->move({-p->getGlobalBounds().size.x / 2.f, 0.f});
+            }
+            else if(alignment == align_right)
+            {
+                p->move({-p->getGlobalBounds().size.x, 0.f});
+            }
+            
+            current_pos.y += p->getGlobalBounds().size.y + spacing;
 
             ++it;
         }
@@ -104,10 +113,12 @@ void Menu::update(float delta)
     }
 }
 
-Menu::~Menu()
+void Menu::set_alignment(Style n_alignemt)
 {
-    if(Application::instance().get_window().isOpen())
-    {
-        //Application::instance().get_manager<WindowEventManager>()->get_event<sf::Event::KeyPressed>()->unsubscribe(ev_id);
-    }
+    alignment = n_alignemt;
+}
+
+void Menu::set_spacing(float n_spacing)
+{
+    spacing = n_spacing;
 }

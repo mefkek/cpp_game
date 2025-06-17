@@ -1,5 +1,5 @@
 #pragma once
-#include "GameState.hpp"
+#include "GameStates.hpp"
 
 class GameStateManager : public Node
 {

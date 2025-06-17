@@ -57,10 +57,10 @@ void RenderManager::add_layer(const std::string& name, unsigned char priority, s
     layers[priority] = RenderLayer(size);
     layers[priority].sp->setScale(
         {
-            Application::instance().get_window().getSize().x 
-                /static_cast<float>(layers[priority].tex->getTexture().getSize().x),
+            Application::instance().get_window().getSize().x /
+            layers[priority].sp->getGlobalBounds().size.x,
             Application::instance().get_window().getSize().y / 
-                static_cast<float>(layers[priority].tex->getTexture().getSize().y)
+            layers[priority].sp->getGlobalBounds().size.y
         }
     );
 }
@@ -144,21 +144,6 @@ void RenderManager::move_view(const std::string& layer, sf::Vector2f offset)
     }
 
     Logger::log(Logger::MessageType::Warning, "Layer with name: ", layer, " has not been found.");
-}
-
-void RenderManager::rescale()
-{
-    for(auto& [priority, layer] : layers)
-    {
-        layer.sp->setScale(
-            {
-                Application::instance().get_window().getSize().x /
-                static_cast<float>(layer.tex->getTexture().getSize().x),
-                Application::instance().get_window().getSize().y /
-                static_cast<float>(layer.tex->getTexture().getSize().y)
-            }
-        );
-    }
 }
 
 void RenderManager::update(float delta)
