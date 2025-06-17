@@ -7,6 +7,8 @@
 #include "Events.hpp"
 #include <stack>
 #include <array>
+#include "Graphics/AnimationHelper.hpp"
+
 
 std::mutex Application::application_mutex;
 
@@ -37,7 +39,34 @@ void Application::initialize()
     // tilemap->setPosition({1920.f / 6.f, 1240.f / 6.f});
     // tilemap->setScale({5.f, 5.f});
 
-    register_manager<RenderManager>();  //maybe should be added first 
+    constexpr int NUM_FRAMES = 4; // Przykładowa liczba klatek w animacji
+
+    // Przygotowanie wektora klatek
+    std::vector<sf::IntRect> frames;
+
+    // Tworzenie klatek animacji
+    for (int i = 0; i < NUM_FRAMES; ++i) {
+        sf::IntRect frame(
+            sf::Vector2i(static_cast<int>(i * FRAME_WIDTH), 0),                // Pozycja
+            sf::Vector2i(static_cast<int>(FRAME_WIDTH), static_cast<int>(FRAME_HEIGHT)) // Rozmiar
+        );
+        frames.emplace_back(frame); // Dodanie klatki do wektora frames
+    }
+
+    // Tworzenie sprite'a i przypisanie tekstury
+    TextureAtlas mainAtlas("assets/sprite_sheet.png", {FRAME_WIDTH, FRAME_HEIGHT});
+    auto sprite = std::make_shared<sf::Sprite>(mainAtlas.get_texture());
+
+    // Ustawienie pierwszej klatki
+    if (!frames.empty()) {
+        mainAtlas.set_rect(sprite, frames[0]);
+    }
+
+    // Tworzenie przykładowej animacji
+    auto example_animation = std::make_shared<Animation>(sprite, mainAtlas, frames, 0.1f, true);
+
+
+    register_manager<RenderManager>();  //maybe should be added first
     register_manager<WindowEventManager>();     //just an empty node, at least for now
     register_manager<CollisionManager>();
 
@@ -133,7 +162,7 @@ void Application::run()
         {
             s.push({node, false});
         }
-            
+
         while(!s.empty())
         {
             StackElement& top = s.top();
