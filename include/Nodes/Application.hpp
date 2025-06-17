@@ -31,7 +31,7 @@ class Application
         Acts as Application class contructor without the dangers of
         referencing an incomplete instance or any thread realated stuff
     */
-    void initialize(); 
+    void initialize();
 
     public:
     Application(const Application&) = delete;   //delete so it can't be copied
@@ -43,7 +43,7 @@ class Application
     void run();
 
     sf::RenderWindow& get_window();
-    
+
     template <typename T, typename ... Args>
     void register_manager(Args&&... args)
     {

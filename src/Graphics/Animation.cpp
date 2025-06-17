@@ -18,17 +18,15 @@ void Animation::update(float delta_time) {
 
     elapsed_time += delta_time;
 
-
     if (elapsed_time >= frame_time) {
         elapsed_time -= frame_time;
         current_frame++;
-
 
         if (current_frame >= total_frames) {
             current_frame = loop ? 0 : total_frames - 1;
         }
 
-
+        // Use the TextureAtlas to set the texture rectangle
         atlas.set_rect(sprite, frames[current_frame]);
     }
 }
@@ -50,14 +48,9 @@ Animation Animation::load_animation(const std::string& texture_file,
                                     float frame_duration,
                                     bool is_looping) {
 
-    auto texture = std::make_unique<sf::Texture>();
-    if (!texture->loadFromFile(texture_file)) {
-        throw std::runtime_error("Texture load failed " + texture_file);
-    }
-
-    auto sprite = std::make_shared<sf::Sprite>(*texture);
-
     TextureAtlas texture_atlas(texture_file);
+
+    auto sprite = std::make_shared<sf::Sprite>(texture_atlas.get_texture());
 
     return Animation(sprite, texture_atlas, frame_rects, frame_duration, is_looping);
 }
