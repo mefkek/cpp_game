@@ -9,23 +9,22 @@ unsigned long EventBase<func_args...>::subscribe(std::weak_ptr<Node> caller, std
 template<typename... func_args>
 void EventBase<func_args...>::unsubscribe(unsigned long id)
 {
-    callables.erase(std::remove_if(callables.begin(),[&id](const CallablePair& o) {return o.id == id;}),
+    callables.erase(std::remove_if(callables.begin(), callables.end(),
+                    [&id](const CallablePair& o) {return o.id == id;}),
                     callables.end());
 }
 
 template<typename... func_args>
 void EventBase<func_args...>::rise(func_args... args)
 {
-    for(auto ev_it = callables.begin(); ev_it != callables.end(); )
+    callables.erase(
+        std::remove_if(callables.begin(), callables.end(),
+        [](const CallablePair& o) { return o.caller.expired(); }),
+        callables.end());
+
+    for(auto& callable : callables)
     {
-        if(!ev_it->caller.expired())
-        {
-            ev_it->callable(std::forward<func_args>(args)...);
-            ++ev_it;
-        }
-        else
-        {
-            ev_it = callables.erase(ev_it);
-        }
+        if (callable.callable)
+            callable.callable(std::forward<func_args>(args)...);
     }
 }

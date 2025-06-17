@@ -22,4 +22,5 @@ class RoomVisualizer
     RoomVisualizer(const TextureAtlas& tileset);
     void visualize(const std::vector<chunk_p>& chunks, unsigned int chunk_size, sf::Vector2i chunk_pos, sf::Vector2f scale = {1.0f, 1.0f});
     void move(sf::Vector2i diff, std::shared_ptr<Chunk> current_chunk, sf::Vector2i chunk_pos);
+    virtual ~RoomVisualizer();
 };

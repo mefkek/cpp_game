@@ -22,11 +22,14 @@ class DungeonManager : public Node
     std::unique_ptr<ChunkGenerator> chunk_getter;
     std::shared_ptr<Chunk> current_chunk;
     void reload_chunks();
+    bool loaded = false;
 
     public:
     DungeonManager(const TextureAtlas& atlas, std::size_t seed, sf::Vector2u dungeon_size,
-                               unsigned int chunk_size, sf::Vector2i player_pos = {0, 0});
+                               unsigned int chunk_size, sf::Vector2i player_pos_d = {0, 0}, sf::Vector2i player_pos_c = {0, 0});
     void initialize() override;
     void update(float delta) override{}
     bool move(sf::Vector2i diff);
+    std::string as_string();
+    bool block_movement = false;
 };
