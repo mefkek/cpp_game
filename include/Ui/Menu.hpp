@@ -23,6 +23,7 @@ class Menu : public ContainerNode<SelectableLabel>, public sf::Transformable
     std::vector<std::weak_ptr<SelectableLabel>> menu_items;
     int current_selection;
     unsigned long ev_id;
+    void position_elements();
     protected:
     using ContainerNode<SelectableLabel>::add_element;
     bool ready = false;

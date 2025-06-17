@@ -34,6 +34,10 @@ void MainMenuState::initialize()
     center(title, 20.f);
 
     auto menu_ptr = add_child<Menu>().lock();
+    menu_ptr->setPosition(title->getPosition() +
+        sf::Vector2f{0.f, title->getGlobalBounds().size.y + 80.f});
+    menu_ptr->set_alignment(Menu::Style::align_center);
+
     menu_ptr->add_item(SelectableLabel([](){
         Application::instance().get_manager<GameStateManager>()->change_state<GameSetupState>();
     }, layer, Application::instance().font, "Play", text_size));
@@ -63,10 +67,6 @@ void MainMenuState::initialize()
     menu_ptr->add_item(SelectableLabel([](){
         Application::instance().close();
     }, layer, Application::instance().font, "Quit", text_size));
-
-    menu_ptr->setPosition(title->getPosition() +
-        sf::Vector2f{0.f, title->getGlobalBounds().size.y + 80.f});
-    menu_ptr->set_alignment(Menu::Style::align_center);
 }
 
 void MainMenuState::update(float delta) {}

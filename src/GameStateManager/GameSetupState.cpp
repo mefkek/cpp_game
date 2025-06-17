@@ -40,7 +40,11 @@ void GameSetupState::initialize()
 {
     auto title = add_child<Label>(layer, Application::instance().font, "The Game", text_size * 3).lock();
     center(title, 20.f);
+
     menu_ptr = add_child<Menu>().lock();
+    menu_ptr->setPosition(title->getPosition() +
+                          sf::Vector2f{0.f, title->getGlobalBounds().size.y + 80.f});
+    menu_ptr->set_alignment(Menu::Style::align_center);
 
     seed_l = menu_ptr->add_item(SelectableLabel([&](){
         std::random_device rd;
@@ -80,11 +84,6 @@ void GameSetupState::initialize()
     menu_ptr->add_item(SelectableLabel([&](){
         Application::instance().get_manager<GameStateManager>()->change_state<MainMenuState>();
     }, layer, Application::instance().font, "Return", text_size));
-
-
-    menu_ptr->setPosition(title->getPosition() +
-                          sf::Vector2f{0.f, title->getGlobalBounds().size.y + 80.f});
-    menu_ptr->set_alignment(Menu::Style::align_center);
 }
 
 void GameSetupState::update(float delta)

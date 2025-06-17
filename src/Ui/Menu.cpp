@@ -69,17 +69,30 @@ void Menu::initialize()
                 ptr->setFillColor(sf::Color::Cyan);
             }
         });
+
+    position_elements();
 }
 
 std::weak_ptr<SelectableLabel> Menu::add_item(const SelectableLabel item)
 {
     auto ret = ContainerNode<SelectableLabel>::add_element(item);
     menu_items.push_back(ret);
+    position_elements();
     return ret;
 }
 
 void Menu::update(float delta)
 {
+    position_elements();
+}
+
+void Menu::position_elements()
+{
+    if(current_selection >= menu_items.size())
+    {
+        return;
+    }
+    
     if(auto ptr = menu_items[current_selection].lock())
     {
         ptr->setScale({1.2, 1.2});

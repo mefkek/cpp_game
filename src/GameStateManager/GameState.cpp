@@ -76,6 +76,12 @@ void GameState::initialize()
                     center(pause_text.lock(), 200.f);
 
                     pause_menu = add_child<Menu>();
+                    pause_menu.lock()->setPosition({
+                        pause_text.lock()->getPosition().x,
+                        pause_text.lock()->getPosition().y + pause_text.lock()->getGlobalBounds().size.y + 50.f
+                    });
+                    pause_menu.lock()->set_alignment(Menu::Style::align_center);
+
                     pause_menu.lock()->add_item(SelectableLabel(
                         [&](){
                             Application::instance().get_manager<DungeonManager>()->block_movement = false;
@@ -158,12 +164,6 @@ void GameState::initialize()
                         "Quit to title",
                         text_size
                     ));
-
-                    pause_menu.lock()->setPosition({
-                        pause_text.lock()->getPosition().x,
-                        pause_text.lock()->getPosition().y + pause_text.lock()->getGlobalBounds().size.y + 50.f
-                    });
-                    pause_menu.lock()->set_alignment(Menu::Style::align_center);
                 }
                 else
                 {
