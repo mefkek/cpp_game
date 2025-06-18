@@ -4,6 +4,8 @@
 #include "DungeonManager/DungeonManager.hpp"
 #include "Nodes/ActorManager.hpp"
 #include "../../include/Ui/FPSCounter.hpp"
+#include "GameStateManager/GameStateManager.hpp"
+
 #include "Events.hpp"
 #include <stack>
 #include <array>
@@ -17,6 +19,7 @@ std::mutex Application::application_mutex;
 
 Application::Application() : font("Fonts/ARIAL.TTF"), atlas("Textures/Tileset.png") {}
 
+
 void Application::initialize()
 {
     window = sf::RenderWindow(sf::VideoMode({640 * 2, 360 * 2}), "CMake SFML Project");
@@ -25,7 +28,6 @@ void Application::initialize()
     register_manager<RenderManager>();
     register_manager<WindowEventManager>(); 
     register_manager<CollisionManager>();
-    register_manager<DungeonManager>(atlas, 10, sf::Vector2u{255u, 255u}, 32);
     register_manager<ActorManager>();
 
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
@@ -37,33 +39,33 @@ void Application::initialize()
     root_level.push_back(create<FPSCounter>("Debug_ui", font));
 
     get_manager<WindowEventManager>()->get_event<sf::Event::Closed>()->
-        subscribe([&](const sf::Event::Closed& e){close();});
+        subscribe(get_manager<WindowEventManager>(), [&](const sf::Event::Closed& e){close();});
 
-    get_manager<WindowEventManager>()->get_event<sf::Event::KeyPressed>()->
-        subscribe([&](const sf::Event::KeyPressed& e)
-        {
-            if(e.scancode == sf::Keyboard::Scancode::Enter)
-            {
-                get_manager<DungeonManager>()->move({0, 0});
-            }
-            else if(e.scancode == sf::Keyboard::Scancode::Up)
-            {
-                get_manager<DungeonManager>()->move({0, 1});
-            }
-            else if(e.scancode == sf::Keyboard::Scancode::Down)
-            {
-                get_manager<DungeonManager>()->move({0, -1});
-            }
-            else if(e.scancode == sf::Keyboard::Scancode::Right)
-            {
-                get_manager<DungeonManager>()->move({-1, 0});
-            }
-            else if(e.scancode == sf::Keyboard::Scancode::Left)
-            {
-                get_manager<DungeonManager>()->move({1, 0});
-            }
-        });
-
+    // get_manager<WindowEventManager>()->get_event<sf::Event::KeyPressed>()->
+    //     subscribe([&](const sf::Event::KeyPressed& e)
+    //     {
+    //         if(e.scancode == sf::Keyboard::Scancode::Enter)
+    //         {
+    //             get_manager<DungeonManager>()->move({0, 0});
+    //         }
+    //         else if(e.scancode == sf::Keyboard::Scancode::Up)
+    //         {
+    //             get_manager<DungeonManager>()->move({0, 1});
+    //         }
+    //         else if(e.scancode == sf::Keyboard::Scancode::Down)
+    //         {
+    //             get_manager<DungeonManager>()->move({0, -1});
+    //         }
+    //         else if(e.scancode == sf::Keyboard::Scancode::Right)
+    //         {
+    //             get_manager<DungeonManager>()->move({-1, 0});
+    //         }
+    //         else if(e.scancode == sf::Keyboard::Scancode::Left)
+    //         {
+    //             get_manager<DungeonManager>()->move({1, 0});
+    //         }
+    //     });
+    
     std::vector<Actor> partyVec{
         {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
         {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
@@ -82,9 +84,12 @@ void Application::initialize()
     };
     auto ep = get_manager<ActorManager>()->addParty(enemy_party_vec);
     //********************************************/
+    //********************************************/
     p->display({300.f, 340.f}, {5.f, 5.f}, {10.f, 10.f}, true);
     p->display_cards();
     ep->display({300.f + 750.f, 340.f}, {-5.f, 5.f}, {-10.f, 10.f});
+
+    register_manager<GameStateManager>();
 }
 
 Application& Application::instance()

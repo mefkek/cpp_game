@@ -28,6 +28,7 @@ void MouseCursor::initialize()
     auto ev_manager = Application::instance().get_manager<WindowEventManager>();
 
     ev_manager->get_event<sf::Event::MouseButtonPressed>()->subscribe(
+        shared_from_this(),
         [&](const sf::Event::MouseButtonPressed& e)
         {
             if (e.button == sf::Mouse::Button::Left)
