@@ -6,9 +6,9 @@
 
 void ActorManager::initialize() {
     // Safe to use shared_from_this() here 
-    playerParty_ = std::dynamic_pointer_cast<Party>(add_child<Party>().lock());
+    player_party_ = std::dynamic_pointer_cast<Party>(add_child<Party>().lock());
 
-    enemyParty_ = std::dynamic_pointer_cast<Party>(add_child<Party>().lock());
+    enemy_party_ = std::dynamic_pointer_cast<Party>(add_child<Party>().lock());
 }
 
 void ActorManager::update(float delta)
@@ -16,7 +16,7 @@ void ActorManager::update(float delta)
 
 }
 
-std::shared_ptr<Party> ActorManager::addParty(std::vector<Actor>& actors)
+std::shared_ptr<Party> ActorManager::add_party(std::vector<Actor>& actors)
 {
     auto party = add_child<Party>().lock();
     for(auto& actor : actors)

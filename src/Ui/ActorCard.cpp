@@ -54,7 +54,7 @@ void ActorCard::initialize()
         portriat = add_child<Icon>(
             layer,
             Application::instance().atlas.get_texture(),
-            ptr->getSprite()->getTextureRect()
+            ptr->get_sprite()->getTextureRect()
         );
         portriat.lock()->setScale({10.f, 10.f});
         stats.push_back(add_child<Label>(

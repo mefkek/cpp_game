@@ -1,6 +1,7 @@
 #pragma once
 #include <sstream>
 #include <mutex>
+#include <iomanip>
 
 #ifdef DEBUG
 #include <filesystem>

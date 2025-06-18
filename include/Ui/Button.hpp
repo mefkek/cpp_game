@@ -7,7 +7,7 @@
 
 class Button : public Node, public sf::Transformable
 {
-private:
+    private:
     using func = std::function<void(const std::weak_ptr<Collider>)>;
 
     void on_pressed(const std::weak_ptr<Collider> other);
@@ -23,7 +23,7 @@ private:
     std::shared_ptr<TriggerArea> trig;
     sf::Vector2f size;
 
-public:
+    public:
     std::shared_ptr<Icon> ico;
     std::shared_ptr<Label> label;
     Button(const std::string layer_name, const sf::Font& font, const sf::Texture& texture, sf::Vector2f size,

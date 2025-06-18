@@ -7,11 +7,11 @@
 
 class FPSCounter : public Label
 {
-private:
+    private:
     float time_passed;
     unsigned int frames;
 
-public:
+    public:
     using Label::Label;
 
     void update(float delta) override;

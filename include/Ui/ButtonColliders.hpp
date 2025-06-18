@@ -4,7 +4,7 @@
 
 class ButtonCollider : public RectangleCollider
 {
-public:
+    public:
     ButtonCollider(sf::Vector2f size, sf::Vector2f pos = {0, 0});
 
     void on_collision(const std::weak_ptr<Collider> other) override;
@@ -12,7 +12,7 @@ public:
 
 class ButtonTriggerArea : public TriggerArea
 {
-public:
+    public:
     ButtonTriggerArea(sf::Vector2f size, sf::Vector2f position = {0, 0});
 
     void on_entered(const std::weak_ptr<Collider> other) override;

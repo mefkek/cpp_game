@@ -10,7 +10,7 @@ class Node : public std::enable_shared_from_this<Node>
         Base class for all things that should be updated each frame,
         Also acts as a base for tree structre
     */
-protected:
+    protected:
     std::vector<std::shared_ptr<Node>> children;
     std::weak_ptr<Node> parent;
 
@@ -19,7 +19,7 @@ protected:
 
     Node() = default;   //should only be used when adding root (friend Application?)
 
-public:
+    public:
     virtual void initialize() {}    //acts as a contructor without the danger of bad_weak_ptr
 
     virtual void update(float) = 0;

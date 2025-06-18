@@ -10,8 +10,6 @@
 #include <cmath>
 #include <limits>
 
-//constexpr int dungeon_min = 6u; included somewhere else
-
 ChunkGenerator::ChunkGenerator(int chunk_size, sf::Vector2u dungeon_size, std::size_t dungeon_seed)
                                : chunk_size(chunk_size), dungeon_size(dungeon_size), dungeon_seed(dungeon_seed) {}
 

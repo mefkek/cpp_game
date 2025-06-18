@@ -1,5 +1,5 @@
 #include "DungeonManager/DungeonManager.hpp"
-#include "Nodes/Application.hpp"    //maybe for debug only
+#include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
 #include "Events/TimedEvent.hpp"
 #include <stack>

@@ -8,20 +8,20 @@
 
 class TriggerAreaColliderCircle : public CircleCollider
 {
-private:
+    private:
     std::vector<std::weak_ptr<Collider>> entered;
     std::vector<std::weak_ptr<Collider>> entered_frame;
-public:
+    public:
     TriggerAreaColliderCircle(sf::Vector2f position, float size);
     void update(float delta) override;
     void on_collision(const std::weak_ptr<Collider> other) override;
 };
 class TriggerAreaColliderRect : public RectangleCollider
 {
-private:
+    private:
     std::vector<std::weak_ptr<Collider>> entered;
     std::vector<std::weak_ptr<Collider>> entered_frame;
-public:
+    public:
     TriggerAreaColliderRect(sf::Vector2f position, sf::Vector2f size);
     void update(float delta) override;
     void on_collision(const std::weak_ptr<Collider> other) override;
@@ -32,10 +32,10 @@ class TriggerArea : public Node
     /*
         Specialized trigger area colliders
     */
-private:
+    private:
     friend class CollisionManager;
 
-protected:
+    protected:
     bool didCollide = false;
     bool triggered = false;
     std::weak_ptr<Collider> last_collided_with;
@@ -44,7 +44,7 @@ protected:
     bool doCircle = false;
 
 
-public:
+    public:
     sf::Vector2f position;
     sf::Vector2f size;
     std::weak_ptr<Collider> collider;

@@ -8,10 +8,10 @@
 // Child management and update propagation are handled by ContainerNode.
 class Party : public ContainerNode<Actor>
 {
-protected:
+    protected:
     using ContainerNode<Actor>::add_element;
 
-public:
+    public:
     template<typename... Args>
     std::shared_ptr<Actor> add_actor(Args&&... args)
     {

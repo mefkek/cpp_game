@@ -22,8 +22,8 @@ void Party::display(sf::Vector2f position, sf::Vector2f scale, sf::Vector2f sp_s
             float x = cos(angle) * distance * scale.x;
             float y = -sin(angle) * distance * scale.y;
 
-            actor->getSprite()->setPosition({position.x + x, position.y + y});
-            actor->getSprite()->setScale(sp_scale);
+            actor->get_sprite()->setPosition({position.x + x, position.y + y});
+            actor->get_sprite()->setScale(sp_scale);
             angle += step;
         }
     }
