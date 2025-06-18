@@ -58,9 +58,9 @@ void RenderManager::add_layer(const std::string& name, unsigned char priority, s
     layers[priority].sp->setScale(
         {
             Application::instance().get_window().getSize().x /
-            layers[priority].sp->getGlobalBounds().size.x,
+            static_cast<float>(layers[priority].tex->getSize().x),
             Application::instance().get_window().getSize().y / 
-            layers[priority].sp->getGlobalBounds().size.y
+            static_cast<float>(layers[priority].tex->getSize().y)
         }
     );
 }

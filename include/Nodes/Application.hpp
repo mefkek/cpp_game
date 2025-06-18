@@ -9,6 +9,8 @@
 #include <iostream>
 #include <mutex>
 #include <map>
+#include "Graphics/Background.hpp"
+
 #include <algorithm>
 
 class Application
@@ -27,6 +29,9 @@ class Application
     std::vector<std::shared_ptr<Node>> root_level; //temporary (?)
     std::map<std::type_index, std::shared_ptr<Node>> managers;
     static std::mutex application_mutex;
+    sf::Texture background;
+
+
 
     Application();
 
@@ -49,7 +54,7 @@ class Application
     void run();
 
     sf::RenderWindow& get_window();
-    
+
     template <typename T, typename ... Args>
     void register_manager(Args&&... args)
     {

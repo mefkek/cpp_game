@@ -9,15 +9,14 @@
 #include "Events.hpp"
 #include <stack>
 #include <array>
-
-//debug
+#include "Graphics/AnimationHelper.hpp"
 #include "../../include/Ui/MouseCollider.hpp"
 #include "Ui/Icon.hpp"
 #include "../../include/Ui/Button.hpp"
 
 std::mutex Application::application_mutex;
 
-Application::Application() : font("Fonts/ARIAL.TTF"), atlas("Textures/Tileset.png") {}
+Application::Application() : font("Fonts/ARIAL.TTF"), atlas("Textures/Tileset.png"), background("Textures/Background.png") {}
 
 
 void Application::initialize()
@@ -29,6 +28,7 @@ void Application::initialize()
     register_manager<WindowEventManager>();
     register_manager<CollisionManager>();
 
+    get_manager<RenderManager>()->add_layer("Background", 0, {1920u, 1240u});
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
 
     get_manager<CollisionManager>()->add_layer("Debug_coll_trig", 0);
@@ -40,32 +40,9 @@ void Application::initialize()
     get_manager<WindowEventManager>()->get_event<sf::Event::Closed>()->
         subscribe(get_manager<WindowEventManager>(), [&](const sf::Event::Closed& e){close();});
 
-    // get_manager<WindowEventManager>()->get_event<sf::Event::KeyPressed>()->
-    //     subscribe([&](const sf::Event::KeyPressed& e)
-    //     {
-    //         if(e.scancode == sf::Keyboard::Scancode::Enter)
-    //         {
-    //             get_manager<DungeonManager>()->move({0, 0});
-    //         }
-    //         else if(e.scancode == sf::Keyboard::Scancode::Up)
-    //         {
-    //             get_manager<DungeonManager>()->move({0, 1});
-    //         }
-    //         else if(e.scancode == sf::Keyboard::Scancode::Down)
-    //         {
-    //             get_manager<DungeonManager>()->move({0, -1});
-    //         }
-    //         else if(e.scancode == sf::Keyboard::Scancode::Right)
-    //         {
-    //             get_manager<DungeonManager>()->move({-1, 0});
-    //         }
-    //         else if(e.scancode == sf::Keyboard::Scancode::Left)
-    //         {
-    //             get_manager<DungeonManager>()->move({1, 0});
-    //         }
-    //     });
-
     register_manager<GameStateManager>();
+    
+    get_manager<RenderManager>()->add_child<Background>(background);
 }
 
 Application& Application::instance()
@@ -113,7 +90,7 @@ void Application::run()
         {
             s.push({node, false});
         }
-            
+
         while(!s.empty())
         {
             StackElement& top = s.top();

@@ -4,6 +4,8 @@
 #include <random>
 #include <algorithm>
 
+constexpr sf::Vector2f window_base = {640 * 2, 360 * 2};
+
 RoomVisualizer::RoomVisualizer(const TextureAtlas& tileset)
     : tileset(tileset), map_tilemap(std::make_shared<Tilemap>()), room_tilemap(std::make_shared<Tilemap>())
 {
@@ -25,13 +27,12 @@ RoomVisualizer::RoomVisualizer(const TextureAtlas& tileset)
     auto& room_texture = render->get_render_texture("dungeon_room");
     auto& room_sprite = render->get_render_sprite("dungeon_room");
 
-    auto window_size = static_cast<sf::Vector2f>(Application::instance().get_window().getSize());
-    map_sprite.setScale({window_size.x * 0.3f / map_texture.getSize().x,
-                         window_size.y * 0.3f / map_texture.getSize().y});
-    map_sprite.setPosition({window_size.x * 0.7f, 0.f});
+    map_sprite.setScale({window_base.x * 0.3f / map_texture.getSize().x,
+                         window_base.y * 0.3f / map_texture.getSize().y});
+    map_sprite.setPosition({window_base.x * 0.7f, 0.f});
 
-    room_sprite.setScale({window_size.x * 0.7f / room_texture.getSize().x,
-                          window_size.y * 0.7f / room_texture.getSize().y});
+    room_sprite.setScale({window_base.x * 0.7f / room_texture.getSize().x,
+                          window_base.y * 0.7f / room_texture.getSize().y});
     room_sprite.setPosition({0.f, 0.f});
 
     for(int i = 0; i < 14; ++i)
