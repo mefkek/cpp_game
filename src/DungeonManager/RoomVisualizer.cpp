@@ -4,6 +4,8 @@
 #include <random>
 #include <algorithm>
 
+constexpr sf::Vector2f window_base = {640 * 2, 360 * 2};
+
 RoomVisualizer::RoomVisualizer(const TextureAtlas& tileset)
     : tileset(tileset), map_tilemap(std::make_shared<Tilemap>()), room_tilemap(std::make_shared<Tilemap>())
 {
@@ -18,57 +20,62 @@ RoomVisualizer::RoomVisualizer(const TextureAtlas& tileset)
     auto render = Application::instance().get_manager<RenderManager>();
 
     render->add_layer("dungeon_map", 188, {1920u, 1020u});
-    auto view = render->get_render_texture("dungeon_map").getView();
-    view.setViewport({{0.7f, 0.f}, {0.3f, 0.3f}});
-    render->get_render_texture("dungeon_map").setView(view);
-
+    auto& map_texture = render->get_render_texture("dungeon_map");
+    auto& map_sprite = render->get_render_sprite("dungeon_map");
 
     render->add_layer("dungeon_room", 187, {640u / 2u, 360u / 2u});
-    auto room_view = render->get_render_texture("dungeon_room").getView();
-    room_view.setViewport({{0.f, 0.f}, {0.7f, 0.7f}});
-    render->get_render_texture("dungeon_room").setView(room_view);
+    auto& room_texture = render->get_render_texture("dungeon_room");
+    auto& room_sprite = render->get_render_sprite("dungeon_room");
 
-    for(int i = 0; i < 12; ++i)
+    map_sprite.setScale({window_base.x * 0.3f / map_texture.getSize().x,
+                         window_base.y * 0.3f / map_texture.getSize().y});
+    map_sprite.setPosition({window_base.x * 0.7f, 0.f});
+
+    room_sprite.setScale({window_base.x * 0.7f / room_texture.getSize().x,
+                          window_base.y * 0.7f / room_texture.getSize().y});
+    room_sprite.setPosition({0.f, 0.f});
+
+    for(int i = 0; i < 14; ++i)
     {
         corridor_tiles[i] = {rand_wall(rd), 0};
     }
 
     for(int i = 1; i < 6; ++i)
     {
-        for(int j = 0; j < 12; ++j)
+        for(int j = 0; j < 14; ++j)
         {
-            corridor_tiles[i * 12 + j] = {rand_floor_x(rd), rand_floor_y(rd)};
+            corridor_tiles[i * 14 + j] = {rand_floor_x(rd), rand_floor_y(rd)};
         }
     }
 
-    for(int i = 0; i < 12; ++i)
+    for(int i = 0; i < 14; ++i)
     {
-        corridor_tiles[6 * 12 + i] = {rand_wall(rd), 0};
+        corridor_tiles[6 * 14 + i] = {rand_wall(rd), 0};
     }
 
     for(int i = 0; i < 5 * 2; ++i)
     {
-        for(int j = 0; j < 6 * 2; ++j)
+        for(int j = 0; j < 8 * 2; ++j)
         {
             if(i == 0 || i == 9)
             {
-                room_tiles[i * 12 + j] = {rand_wall(rd), ((i == 0) ? 0 : 4)};
+                room_tiles[i * 16 + j] = {rand_wall(rd), ((i == 0) ? 0 : 4)};
             }
-            else if(j == 0 || j == 11)
+            else if(j == 0 || j == 15)
             {
-                room_tiles[i * 12 + j] = {((j == 0) ? 0 : 5), rand_wall_h(rd)};
+                room_tiles[i * 16 + j] = {((j == 0) ? 0 : 5), rand_wall_h(rd)};
             }
             else
             {
-                room_tiles[i * 12 + j] = {rand_floor_x(rd), rand_floor_y(rd)};
+                room_tiles[i * 16 + j] = {rand_floor_x(rd), rand_floor_y(rd)};
             }
         }
     }
 
     room_tiles[0] = {0, 0};
-    room_tiles[11] = {5, 0};
-    room_tiles[10 * 10 + 8] = {0, 4};
-    room_tiles[11 * 10 + 9] = {5, 4};
+    room_tiles[15] = {5, 0};
+    room_tiles[16 * 9] = {0, 4};
+    room_tiles[10 * 16 - 1] = {5, 4};
 
     render->add_drawable("dungeon_room", room_tilemap);
 }
@@ -76,7 +83,7 @@ RoomVisualizer::RoomVisualizer(const TextureAtlas& tileset)
 void RoomVisualizer::display_minimap(const std::vector<chunk_p>& chunks, unsigned int chunk_size, sf::Vector2i chunk_pos, sf::Vector2f scale)
 {
     map_tiles = std::vector<sf::Vector2i>((3 * chunk_size) * (3 * chunk_size), {10, 8});
-    
+
     for(int i = 0; i < 3; ++i)
     {
         int swapped_i = 2 - i;
@@ -176,13 +183,13 @@ void RoomVisualizer::display_room(const std::shared_ptr<Chunk> current_chunk, sf
         {
             if(auto c_ptr = std::dynamic_pointer_cast<Corridor>(r_ptr))
             {
-                room_tilemap->load(tileset, {16, 16}, corridor_tiles.data(), 12, 7);
-                tilemap_size = {12 * 16.f, 7 * 16.f};
+                room_tilemap->load(tileset, {16, 16}, corridor_tiles.data(), 14, 7);
+                tilemap_size = {14 * 16.f, 7 * 16.f};
             }
             else
             {
-                room_tilemap->load(tileset, {16, 16}, room_tiles.data(), 6 * 2, 5 * 2);
-                tilemap_size = {12 * 16.f, 10 * 16.f};
+                room_tilemap->load(tileset, {16, 16}, room_tiles.data(), 8 * 2, 5 * 2);
+                tilemap_size = {16 * 16.f, 10 * 16.f};
             }
         }
     }
@@ -204,4 +211,15 @@ void RoomVisualizer::move(sf::Vector2i diff, std::shared_ptr<Chunk> current_chun
     sf::Vector2f scale = map_tilemap->getScale();
     map_tilemap->move({diff.x * 16.f * scale.x, diff.y * 16.f * scale.y});
     display_room(current_chunk, chunk_pos);
+}
+
+RoomVisualizer::~RoomVisualizer()
+{
+    if(Application::instance().get_window().isOpen())
+    {
+        auto render = Application::instance().get_manager<RenderManager>();
+
+        render->remove_layer("dungeon_map");
+        render->remove_layer("dungeon_room");
+    }
 }

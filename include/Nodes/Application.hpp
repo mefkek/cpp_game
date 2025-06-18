@@ -1,14 +1,17 @@
 #pragma once
 #include "Utility/Exceptions.hpp"
+#include "Tilemap/Tilemap.hpp"
 #include "Utility/Various.hpp"
 #include "Node.hpp"
 #include <SFML/Graphics.hpp>
+#include "Tilemap/Tilemap.hpp"
 #include <typeindex>
 #include <iostream>
 #include <mutex>
 #include <map>
 #include "Graphics/Background.hpp"
 
+#include <algorithm>
 
 class Application
 {
@@ -39,6 +42,9 @@ class Application
     void initialize();
 
     public:
+    const sf::Font font;
+    const TextureAtlas atlas;
+
     Application(const Application&) = delete;   //delete so it can't be copied
 
     Application& operator=(const Application&) = delete;   //delete so it can't be claimed
@@ -54,6 +60,28 @@ class Application
     {
         root_level.emplace_back(create<T>(std::forward<Args>(args)...));
         managers[std::type_index(typeid(T))] = root_level.back();
+    }
+
+    template <typename T>
+    void deregister_manager()
+    {
+        auto type_idx = std::type_index(typeid(T));
+        auto it = managers.find(type_idx);
+        if(it != managers.end())
+        {
+            // Remove from root_level as well
+            auto ptr = it->second;
+            root_level.erase(
+                std::remove(root_level.begin(), root_level.end(), ptr),
+                root_level.end()
+            );
+            it->second.reset();
+            managers.erase(it);
+            return;
+        }
+
+        Logger::log(Logger::MessageType::Warning, "Manager of type: ",
+            demangle(type_idx.name()), " has not been found");
     }
 
     template <typename T>

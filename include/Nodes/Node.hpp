@@ -26,6 +26,8 @@ class Node : public std::enable_shared_from_this<Node>
 
     std::vector<std::shared_ptr<Node>>& get_children();
 
+    std::weak_ptr<Node> get_parent();
+
     template <typename T, typename ... Args>
     std::weak_ptr<T> add_child(Args&&... args);
 

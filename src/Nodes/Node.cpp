@@ -14,15 +14,21 @@ std::vector<std::shared_ptr<Node>>& Node::get_children()
     return children;
 }
 
+std::weak_ptr<Node> Node::get_parent()
+{
+    return parent;
+}
+
 void Node::remove_child(std::shared_ptr<Node> ch)
 {
-    size_t size_b = children.size();
-    children.erase(std::remove(children.begin(), children.end(), ch), children.end());
-
-    if(size_b != children.size())
+#ifdef DEBUG
+    if(std::find(children.begin(), children.end(), ch) == children.end())
     {
-        Logger::log(Logger::MessageType::Warning, "Tried removind node: ", ch, "which is not a child of", shared_from_this(), ".");
+        Logger::log(Logger::MessageType::Warning, "Tried removing node ", ch, " which is not a child of ", shared_from_this());
+        return;
     }
+#endif
+    children.erase(std::remove(children.begin(), children.end(), ch), children.end());
 }
 
 void Node::kill()
@@ -53,3 +59,5 @@ std::ostream& operator<<(std::ostream& os, const std::shared_ptr<Node>& n)
 
     return os;
 }
+
+

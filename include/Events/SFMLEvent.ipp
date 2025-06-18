@@ -33,8 +33,8 @@ void SFMLEvent<Ev>::try_rise(const std::optional<sf::Event> event)
     }
 }
 
-template<typename Ev>
-unsigned long SFMLEvent<Ev>::subscribe(std::function<void(Ev)> func)
-{
-    return EventBase<Ev>::subscribe(this->shared_from_this(), func);
-}
+// template<typename Ev>
+// unsigned long SFMLEvent<Ev>::subscribe(std::function<void(Ev)> func, std::shared_ptr<Node> caller)
+// {
+//     return EventBase<Ev>::subscribe(caller, func);
+// }

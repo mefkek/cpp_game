@@ -27,6 +27,8 @@ class RenderManager : public Node
     sf::RenderTexture& get_render_texture(const std::string& name);
     sf::Sprite& get_render_sprite(const std::string& name);
 
+    sf::Vector2f translate_to_layer(const std::string& layer, const sf::Vector2f& vec);
+
     void add_layer(const std::string& name, unsigned char priority = 0, sf::Vector2u size = {640, 360});
 
     void add_drawable(const std::string& layer, const std::weak_ptr<sf::Drawable>& dw);
@@ -35,9 +37,7 @@ class RenderManager : public Node
 
     void remove_layer(const std::string& name);
 
-    void move_view(const std::string& layer, sf::Vector2f offset);  //basically a camera
+    void move_view(const std::string& layer, sf::Vector2f offset);
 
-    void rescale();
-    
     void update(float delta) override;
 };

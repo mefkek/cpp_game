@@ -48,19 +48,35 @@ void RenderManager::add_layer(const std::string& name, unsigned char priority, s
 {
     if(layers.count(priority) || string_ref.count(name))
     {
-        throw DuplicateRenderLayerException(name);
+        //throw DuplicateRenderLayerException(name);
+        Logger::log(Logger::MessageType::Warning, "Layer with name ", name, " exists, aborting creation.");
+        return;
     }
 
     string_ref[name] = priority;
     layers[priority] = RenderLayer(size);
     layers[priority].sp->setScale(
         {
-            Application::instance().get_window().getSize().x 
-                /static_cast<float>(layers[priority].tex->getTexture().getSize().x),
+            Application::instance().get_window().getSize().x /
+            static_cast<float>(layers[priority].tex->getSize().x),
             Application::instance().get_window().getSize().y / 
-                static_cast<float>(layers[priority].tex->getTexture().getSize().y)
+            static_cast<float>(layers[priority].tex->getSize().y)
         }
     );
+}
+
+sf::Vector2f RenderManager::translate_to_layer(const std::string& layer, const sf::Vector2f& vec)
+{
+    if(string_ref.count(layer))
+    {
+        if(layers.count(string_ref[layer]))
+        {
+            sf::Vector2f scale = layers.at(string_ref[layer]).sp->getScale();
+            return {vec.x / scale.x, vec.y / scale.y};
+        }
+    }
+
+    throw std::runtime_error("Layer with name: " +  layer + " has not been found.");
 }
 
 void RenderManager::add_drawable(const std::string& layer, const std::weak_ptr<sf::Drawable>& dw)
@@ -105,15 +121,11 @@ void RenderManager::remove_layer(const std::string& name)
 {
     if(string_ref.count(name))
     {
-        auto it = std::find_if(layers.begin(), layers.end(),
-        [&](const std::pair<const unsigned char, RenderLayer>& other)
+        unsigned char priority = string_ref[name];
+        if(layers.count(priority))
         {
-             return other.first == string_ref[name];
-        });
-
-        if(it != layers.end())
-        {
-            layers.erase(it);
+            string_ref.erase(name);
+            layers.erase(priority);
             return;
         }
     }
@@ -132,21 +144,6 @@ void RenderManager::move_view(const std::string& layer, sf::Vector2f offset)
     }
 
     Logger::log(Logger::MessageType::Warning, "Layer with name: ", layer, " has not been found.");
-}
-
-void RenderManager::rescale()
-{
-    for(auto& [priority, layer] : layers)
-    {
-        layer.sp->setScale(
-            {
-                Application::instance().get_window().getSize().x /
-                static_cast<float>(layer.tex->getTexture().getSize().x),
-                Application::instance().get_window().getSize().y /
-                static_cast<float>(layer.tex->getTexture().getSize().y)
-            }
-        );
-    }
 }
 
 void RenderManager::update(float delta)

@@ -6,7 +6,7 @@ template<typename T>
 /*
     Class template for Nodes with container functionality
     Children of type other than T can still be added,
-    but wonn't be taken into account when using specific functions
+    but won't be taken into account when using specific functions
 */
 class ContainerNode : public Node
 {
