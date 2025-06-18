@@ -37,62 +37,7 @@ void Application::initialize()
     // };
     // tilemap->load(atlas, {16, 16}, tiles.data(), 6, 5);
     // tilemap->setPosition({1920.f / 6.f, 1240.f / 6.f});
-    // tilemap->setScale({5.f, 5.f});
-
-
-
-
-
-
-    constexpr int NUM_FRAMES = 4;
-
-    std::vector<sf::IntRect> frames;
-
-    for (int i = 0; i < NUM_FRAMES; ++i) {
-        sf::IntRect frame(
-            sf::Vector2i(static_cast<int>(i * FRAME_WIDTH), 0),
-            sf::Vector2i(static_cast<int>(FRAME_WIDTH), static_cast<int>(FRAME_HEIGHT))
-        );
-        frames.emplace_back(frame);
-    }
-
-    TextureAtlas mainAtlas("Textures/Animation.png", {FRAME_WIDTH, FRAME_HEIGHT});
-    auto sprite = std::make_shared<sf::Sprite>(mainAtlas.get_texture());
-
-
-    if (!frames.empty()) {
-        mainAtlas.set_rect(sprite, frames[0]);
-    }
-
-    auto example_animation = std::make_shared<Animation>(sprite, mainAtlas, frames, 0.1f, true);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // tilemap->setScale({5.f, 5.f})
 
     register_manager<RenderManager>();  //maybe should be added first
     register_manager<WindowEventManager>();     //just an empty node, at least for now
