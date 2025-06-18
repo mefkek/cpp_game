@@ -11,4 +11,4 @@ set(SOURCES
 add_library(DungeonManager ${SOURCES})
 
 target_include_directories(DungeonManager PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(DungeonManager PUBLIC SFML::Graphics Nodes Tilemap)
+target_link_libraries(DungeonManager PUBLIC SFML::Graphics Nodes Tilemap Events)

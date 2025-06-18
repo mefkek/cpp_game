@@ -1,5 +1,6 @@
 #pragma once
 #include "Utility/Exceptions.hpp"
+#include "Tilemap/Tilemap.hpp"
 #include "Utility/Various.hpp"
 #include "Node.hpp"
 #include <SFML/Graphics.hpp>
@@ -33,7 +34,7 @@ class Application
         Acts as Application class contructor without the dangers of
         referencing an incomplete instance or any thread realated stuff
     */
-    void initialize(); 
+    void initialize();
 
     public:
     const sf::Font font;

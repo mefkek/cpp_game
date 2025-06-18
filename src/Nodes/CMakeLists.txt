@@ -1,6 +1,5 @@
-#include all .cpp file in current directory
 file(GLOB SOURCES
-        *.cpp
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
 )
 
 add_library(Nodes ${SOURCES})

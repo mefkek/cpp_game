@@ -2,6 +2,7 @@
 #include "Nodes/RenderManager.hpp"
 #include "Nodes/CollisionManager.hpp"
 #include "DungeonManager/DungeonManager.hpp"
+#include "Nodes/ActorManager.hpp"
 #include "../../include/Ui/FPSCounter.hpp"
 #include "GameStateManager/GameStateManager.hpp"
 
@@ -18,15 +19,15 @@ std::mutex Application::application_mutex;
 
 Application::Application() : font("Fonts/ARIAL.TTF"), atlas("Textures/Tileset.png") {}
 
+
 void Application::initialize()
 {
     window = sf::RenderWindow(sf::VideoMode({640 * 2, 360 * 2}), "CMake SFML Project");
     window.setVerticalSyncEnabled(true);
 
     register_manager<RenderManager>();
-    register_manager<WindowEventManager>(); 
+    register_manager<WindowEventManager>();
     register_manager<CollisionManager>();
-    //register_manager<DungeonManager>(atlas, 10, sf::Vector2u{255u, 255u}, 32);
 
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
 
@@ -63,7 +64,6 @@ void Application::initialize()
     //             get_manager<DungeonManager>()->move({1, 0});
     //         }
     //     });
-    //********************************************/
 
     register_manager<GameStateManager>();
 }
