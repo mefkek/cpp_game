@@ -4,7 +4,6 @@
 #include "DungeonManager/DungeonManager.hpp"
 #include "Nodes/ActorManager.hpp"
 #include "../../include/Ui/FPSCounter.hpp"
-#include "Tilemap/Tilemap.hpp"
 #include "Events.hpp"
 #include <stack>
 #include <array>
@@ -16,13 +15,12 @@
 
 std::mutex Application::application_mutex;
 
+Application::Application() : font("Fonts/ARIAL.TTF"), atlas("Textures/Tileset.png") {}
+
 void Application::initialize()
 {
     window = sf::RenderWindow(sf::VideoMode({640 * 2, 360 * 2}), "CMake SFML Project");
     window.setVerticalSyncEnabled(true);
-
-    static sf::Font font("Fonts/ARIAL.TTF");
-    static TextureAtlas atlas("Textures/Tileset.png"); //debug only
 
     register_manager<RenderManager>();
     register_manager<WindowEventManager>(); 
@@ -67,11 +65,11 @@ void Application::initialize()
         });
 
     std::vector<Actor> partyVec{
-        //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
-        {ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
-        {ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
-        {ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
-        {ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"}
+        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
+        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
+        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
+        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
+        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"}
     };
     auto p = get_manager<ActorManager>()->addParty(partyVec);
 
@@ -79,12 +77,13 @@ void Application::initialize()
         //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
         //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
         //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
-        {ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
-        {ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"}
+        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
+        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"}
     };
     auto ep = get_manager<ActorManager>()->addParty(enemy_party_vec);
     //********************************************/
-    p->display({300.f, 340.f}, {5.f, 5.f}, {10.f, 10.f});
+    p->display({300.f, 340.f}, {5.f, 5.f}, {10.f, 10.f}, true);
+    p->display_cards();
     ep->display({300.f + 750.f, 340.f}, {-5.f, 5.f}, {-10.f, 10.f});
 }
 
