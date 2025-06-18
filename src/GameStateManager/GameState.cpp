@@ -4,6 +4,7 @@
 #include "Nodes/RenderManager.hpp"
 #include "GameStateManager/GameStateManager.hpp"
 #include "DungeonManager/DungeonManager.hpp"
+#include "Nodes/ActorManager.hpp"
 #include <fstream>
 #include <filesystem>
 #include <random>
@@ -31,9 +32,16 @@ inline void center(std::shared_ptr<Label> tf, float v_offset)
 GameState::GameState(std::size_t seed, sf::Vector2u dungeon_size, unsigned int chunk_size,
                     sf::Vector2i player_pos_d, sf::Vector2i player_pos_c)
 {
-    Application::instance().
-        register_manager<DungeonManager>
-        (Application::instance().atlas, seed, dungeon_size, chunk_size, player_pos_d, player_pos_c);
+    Application::instance().register_manager<DungeonManager>(
+        Application::instance().atlas,
+        seed,
+        dungeon_size,
+        chunk_size,
+        player_pos_d,
+        player_pos_c
+    );
+    
+    Application::instance().register_manager<ActorManager>();
 }
 
 void GameState::initialize()
@@ -179,6 +187,30 @@ void GameState::initialize()
                 }
             }
     });
+
+    auto& atlas = Application::instance().atlas;
+    std::vector<Actor> partyVec{
+        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
+        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
+        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
+        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
+        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"}
+    };
+    auto p = Application::instance().get_manager<ActorManager>()->addParty(partyVec);
+
+    std::vector<Actor> enemy_party_vec{
+        //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
+        //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
+        //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
+        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
+        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"}
+    };
+    auto ep = Application::instance().get_manager<ActorManager>()->addParty(enemy_party_vec);
+    //********************************************/
+    //********************************************/
+    p->display({300.f, 340.f}, {5.f, 5.f}, {10.f, 10.f}, true);
+    p->display_cards();
+    ep->display({300.f + 750.f, 340.f}, {-5.f, 5.f}, {-10.f, 10.f});
 }
 
 void GameState::update(float delta)
@@ -190,5 +222,6 @@ GameState::~GameState()
     if(Application::instance().get_window().isOpen())
     {
         Application::instance().deregister_manager<DungeonManager>();
+        Application::instance().deregister_manager<ActorManager>();
     }
 }

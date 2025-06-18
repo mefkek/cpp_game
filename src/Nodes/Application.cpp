@@ -28,7 +28,6 @@ void Application::initialize()
     register_manager<RenderManager>();
     register_manager<WindowEventManager>(); 
     register_manager<CollisionManager>();
-    register_manager<ActorManager>();
 
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
 
@@ -65,29 +64,6 @@ void Application::initialize()
     //             get_manager<DungeonManager>()->move({1, 0});
     //         }
     //     });
-    
-    std::vector<Actor> partyVec{
-        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
-        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
-        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
-        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
-        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"}
-    };
-    auto p = get_manager<ActorManager>()->addParty(partyVec);
-
-    std::vector<Actor> enemy_party_vec{
-        //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
-        //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
-        //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
-        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
-        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"}
-    };
-    auto ep = get_manager<ActorManager>()->addParty(enemy_party_vec);
-    //********************************************/
-    //********************************************/
-    p->display({300.f, 340.f}, {5.f, 5.f}, {10.f, 10.f}, true);
-    p->display_cards();
-    ep->display({300.f + 750.f, 340.f}, {-5.f, 5.f}, {-10.f, 10.f});
 
     register_manager<GameStateManager>();
 }
