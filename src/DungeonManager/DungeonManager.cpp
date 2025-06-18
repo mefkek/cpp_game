@@ -1,6 +1,7 @@
 #include "DungeonManager/DungeonManager.hpp"
 #include "Nodes/Application.hpp"    //maybe for debug only
 #include "Nodes/RenderManager.hpp"
+#include "Events/TimedEvent.hpp"
 #include <stack>
 #include <string>
 #include <unordered_set>

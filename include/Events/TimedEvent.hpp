@@ -9,6 +9,6 @@ class TimedEvent : public EventBase<>
     int repetitions;
 
     public:
-    TimedEvent(float time, int reps);
+    TimedEvent(float time, int reps = 1);
     void update(float delta) override;
 };

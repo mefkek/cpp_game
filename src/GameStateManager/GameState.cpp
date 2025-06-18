@@ -46,8 +46,8 @@ GameState::GameState(std::size_t seed, sf::Vector2u dungeon_size, unsigned int c
 
 void GameState::initialize()
 {
-    ev_id = Application::instance().get_manager<WindowEventManager>()->get_event<sf::Event::KeyPressed>()->
-        subscribe(shared_from_this(), [&](const sf::Event::KeyPressed& e)
+    ev_id = Application::instance().get_manager<WindowEventManager>()->get_event<sf::Event::KeyReleased>()->
+        subscribe(shared_from_this(), [&](const sf::Event::KeyReleased& e)
         {
             if(e.scancode == sf::Keyboard::Scancode::Enter)
             {
