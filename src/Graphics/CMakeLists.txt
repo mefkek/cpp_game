@@ -1,6 +1,7 @@
 set(SOURCES
         Animation.cpp
         AnimationHelper.cpp
+        Background.cpp
 )
 
 add_library(Animation ${SOURCES})

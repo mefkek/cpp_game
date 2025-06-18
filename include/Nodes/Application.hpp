@@ -7,6 +7,8 @@
 #include <iostream>
 #include <mutex>
 #include <map>
+#include "Graphics/Background.hpp"
+
 
 class Application
 {
@@ -24,6 +26,9 @@ class Application
     std::vector<std::shared_ptr<Node>> root_level; //temporary (?)
     std::map<std::type_index, std::shared_ptr<Node>> managers;
     static std::mutex application_mutex;
+    Background background;
+
+
 
     Application() = default;
 

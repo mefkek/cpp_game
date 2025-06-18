@@ -20,6 +20,29 @@ void Application::initialize()
     window = sf::RenderWindow(sf::VideoMode({640 * 2, 360 * 2}), "CMake SFML Project");
     window.setVerticalSyncEnabled(true);
 
+
+
+    try {
+        background = Background("Texture/Background.png");
+
+    } catch (const std::runtime_error& error) {
+        std::cerr << "Failed to load background: " << error.what() << std::endl;
+    }
+    background.setPosition(0, 0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     //This block can stay for now, but this should be handled properly later on
     //(program argumetns -d as an separete debug node maybe?)
     std::shared_ptr<FPSCounter> fps = std::make_shared<FPSCounter>();
