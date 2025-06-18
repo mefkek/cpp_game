@@ -34,7 +34,7 @@ class Application
         Acts as Application class contructor without the dangers of
         referencing an incomplete instance or any thread realated stuff
     */
-    void initialize(); 
+    void initialize();
 
     public:
     const sf::Font font;

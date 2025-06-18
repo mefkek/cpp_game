@@ -2,6 +2,9 @@
 #include "Nodes/Application.hpp"
 #include "Nodes/RenderManager.hpp"
 #include "Ui/ActorCard.hpp"
+#include "Nodes/Application.hpp"
+#include "Nodes/RenderManager.hpp"
+#include "Ui/ActorCard.hpp"
 #include <cmath>
 
 void Party::display(sf::Vector2f position, sf::Vector2f scale, sf::Vector2f sp_scale, bool do_cards)
@@ -11,7 +14,9 @@ void Party::display(sf::Vector2f position, sf::Vector2f scale, sf::Vector2f sp_s
 
     float angle = 0;
     for(auto it = children.begin(); it != children.end(); ++it)
+    for(auto it = children.begin(); it != children.end(); ++it)
     {
+        if(auto actor = std::dynamic_pointer_cast<Actor>(*it))
         if(auto actor = std::dynamic_pointer_cast<Actor>(*it))
         {
             float x = cos(angle) * distance * scale.x;

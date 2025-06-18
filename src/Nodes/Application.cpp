@@ -26,7 +26,7 @@ void Application::initialize()
     window.setVerticalSyncEnabled(true);
 
     register_manager<RenderManager>();
-    register_manager<WindowEventManager>(); 
+    register_manager<WindowEventManager>();
     register_manager<CollisionManager>();
 
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
