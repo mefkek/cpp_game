@@ -1,30 +1,27 @@
 #pragma once
 
 #include "Nodes/Actor.hpp"
-#include <vector>
-#include <algorithm>
+#include <memory>
 
-struct Combatant {
-    std::shared_ptr<Actor> actor;
-    bool isEnemy;
-};
-
+// Manages static click combat; no speed or defense
 class CombatManager {
 public:
-    CombatManager(std::shared_ptr<Actor> player, std::vector<std::shared_ptr<Actor>> enemies);
-    // Returns false once combat is over
-    bool update(float delta);
+    CombatManager(std::shared_ptr<Actor> player,
+                  std::shared_ptr<Actor> enemy)
+        : player_(std::move(player)), enemy_(std::move(enemy)) {}
+
+    // Player clicks to attack the enemy
+    void attackEnemy() {
+        int atk = player_->get_stat("attack");
+        enemy_->changeStat("hp", -atk);
+    }
+
+    bool isEnemyDead() const {
+        return enemy_->get_stat("hp") <= 0;
+    }
 
 private:
     std::shared_ptr<Actor> player_;
-    std::vector<std::shared_ptr<Actor>> enemies_;
-    std::vector<Combatant> queue_;
-    size_t currentIndex_ = 0;
-    bool combatEnded_ = false;
-
-    void initializeQueue();
-    void advanceTurn();
-    void handlePlayerTurn();
-    void handleEnemyTurn(const std::shared_ptr<Actor>& enemy);
-    void applyDamage(const std::shared_ptr<Actor>& attacker, const std::shared_ptr<Actor>& target);
+    std::shared_ptr<Actor> enemy_;
 };
+
