@@ -12,6 +12,10 @@ void Background::initialize()
         layer_size.x / static_cast<float>(getTexture().getSize().x),
         layer_size.y / static_cast<float>(getTexture().getSize().y)
     });
+    
+    auto color = getColor();
+    color.a = static_cast<uint8_t>(color.a * 0.7f);
+    setColor(color);
 }
 
 void Background::update(float delta) {}
