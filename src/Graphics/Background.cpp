@@ -1,4 +1,3 @@
-// Background.cpp
 #include "Graphics/Background.hpp"
 #include <stdexcept>
 
