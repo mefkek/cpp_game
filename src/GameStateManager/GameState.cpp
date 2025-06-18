@@ -198,19 +198,8 @@ void GameState::initialize()
     };
     auto p = Application::instance().get_manager<ActorManager>()->addParty(partyVec);
 
-    std::vector<Actor> enemy_party_vec{
-        //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
-        //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
-        //{ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
-        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"},
-        {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{1, 8}, "Debug_ui"}
-    };
-    auto ep = Application::instance().get_manager<ActorManager>()->addParty(enemy_party_vec);
-    //********************************************/
-    //********************************************/
     p->display({300.f, 340.f}, {5.f, 5.f}, {10.f, 10.f}, true);
     p->display_cards();
-    ep->display({300.f + 750.f, 340.f}, {-5.f, 5.f}, {-10.f, 10.f});
 }
 
 void GameState::update(float delta)
