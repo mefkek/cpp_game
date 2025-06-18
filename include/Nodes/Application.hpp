@@ -1,5 +1,6 @@
 #pragma once
 #include "Utility/Exceptions.hpp"
+#include "Tilemap/Tilemap.hpp"
 #include "Utility/Various.hpp"
 #include "Node.hpp"
 #include <SFML/Graphics.hpp>
@@ -25,15 +26,18 @@ class Application
     std::map<std::type_index, std::shared_ptr<Node>> managers;
     static std::mutex application_mutex;
 
-    Application() = default;
+    Application();
 
     /*
         Acts as Application class contructor without the dangers of
         referencing an incomplete instance or any thread realated stuff
     */
-    void initialize(); 
+    void initialize();
 
     public:
+    const sf::Font font;
+    const TextureAtlas atlas;
+
     Application(const Application&) = delete;   //delete so it can't be copied
 
     Application& operator=(const Application&) = delete;   //delete so it can't be claimed

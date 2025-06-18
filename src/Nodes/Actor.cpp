@@ -3,26 +3,27 @@
 #include "Nodes/Actor.hpp"
 #include "Utility/Logger.hpp"
 
-Actor::Actor(ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour)
+Actor::Actor(std::string actor_name, ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour)
     : race_(race)
     , behaviour_(behaviour)
+    , name(actor_name)
 {
     // Default stat initialization
     stats_["HP"]     = 100;
     stats_["Attack"] = 10;
 }
 
-Actor::Actor(ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour, const TextureAtlas& atlas,
+Actor::Actor(std::string actor_name, ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour, const TextureAtlas& atlas,
     sf::Vector2i rect, const std::string& display_layer)
-    : Actor(race, behaviour)
+    : Actor(actor_name, race, behaviour)
 {
     atlas.set_rect(sprite_, rect);
     Application::instance().get_manager<RenderManager>()->add_drawable(display_layer, sprite_);
 }
 
-Actor::Actor(ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour, const TextureAtlas& atlas,
+Actor::Actor(std::string actor_name, ActorRaceEnum race, std::shared_ptr<ActorBehaviour> behaviour, const TextureAtlas& atlas,
     sf::IntRect rect, const std::string& display_layer)
-    : Actor(race, behaviour)
+    : Actor(actor_name, race, behaviour)
 {
     atlas.set_rect(sprite_, rect);
     Application::instance().get_manager<RenderManager>()->add_drawable(display_layer, sprite_);
@@ -69,6 +70,29 @@ std::shared_ptr<sf::Sprite> Actor::getSprite() const
     return sprite_;
 }
 
+const std::unordered_map<std::string,int>& Actor::get_stats()
+{
+    return stats_;
+}
+
+int Actor::get_stat(const std::string& name)
+{
+    auto it = stats_.find(name);
+    if (it == stats_.end())
+    {
+        // Log a warning if the stat does not exist, then invoke failure hook
+        Logger::log(
+            Logger::MessageType::Warning,
+            shared_from_this(),                   // <-- use shared_from_this() here
+            " tried changing non-existent stat ",
+            name
+        );
+        return -1;
+    }
+
+    return it->second;
+}
+
 std::string Actor::toString() const
 {
     // Format:
@@ -77,14 +101,20 @@ std::string Actor::toString() const
     //   <key2> <value2>\n
     //   …
     std::ostringstream oss;
-    oss << static_cast<int>(race_) << ' ' << stats_.size() << '\n';
+    oss << "$$ACTOR_START$$\n";
+    oss << name << ' ' << static_cast<int>(race_) << ' ' << stats_.size() << '\n';
     for (const auto& kv : stats_)
     {
         oss << kv.first << ' ' << kv.second << '\n';
     }
+    oss << "$$ACTOR_END&&\n";
     return oss.str();
 }
 
+std::string Actor::get_name()
+{
+    return name;
+}
 
 #include "Nodes/Actor.hpp"
 #include <sstream>
@@ -96,14 +126,17 @@ void Actor::fromString(const std::string& data)
 {
     std::istringstream iss(data);
 
+    std::string name_str;
     int raceInt = 0;
     size_t numStats = 0;
 
     // 1) Read the race (as integer) and the count of stats
-    if (!(iss >> raceInt >> numStats))
+    if (!(iss >> name_str >> raceInt >> numStats))
     {
         throw std::runtime_error("Actor::fromString: failed to parse race/numStats");
     }
+
+    name = name_str;
 
     // 2) Cast to ActorRaceEnum (assumes the integer is valid).
     //    If you need to guard against out-of-range values, you could add your own check here.

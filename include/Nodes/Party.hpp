@@ -35,5 +35,6 @@ public:
         return a_ptr.lock();
     }
 
-    void display(sf::Vector2f position, sf::Vector2f scale, sf::Vector2f sp_scale);
+    void display(sf::Vector2f position, sf::Vector2f scale, sf::Vector2f sp_scale, bool do_cards = false);
+    void display_cards();
 };

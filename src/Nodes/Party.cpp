@@ -1,15 +1,18 @@
 #include "Nodes/Party.hpp"
+#include "Nodes/Application.hpp"
+#include "Nodes/RenderManager.hpp"
+#include "Ui/ActorCard.hpp"
 #include <cmath>
 
-void Party::display(sf::Vector2f position, sf::Vector2f scale, sf::Vector2f sp_scale)
+void Party::display(sf::Vector2f position, sf::Vector2f scale, sf::Vector2f sp_scale, bool do_cards)
 {
     constexpr const float distance = 1.5f * 16.f;    //change after debug
     float step = (2 * M_PI) / children.size();
 
     float angle = 0;
-    for(auto& node : children)
+    for(auto it = children.begin(); it != children.end(); ++it)
     {
-        if(auto actor = std::dynamic_pointer_cast<Actor>(node))
+        if(auto actor = std::dynamic_pointer_cast<Actor>(*it))
         {
             float x = cos(angle) * distance * scale.x;
             float y = -sin(angle) * distance * scale.y;
@@ -18,5 +21,33 @@ void Party::display(sf::Vector2f position, sf::Vector2f scale, sf::Vector2f sp_s
             actor->getSprite()->setScale(sp_scale);
             angle += step;
         }
+    }
+}
+
+void Party::display_cards()
+{
+    auto window_size = Application::instance().get_window().getSize();
+    int counter = 0;
+    std::vector<std::weak_ptr<Actor>> to_ref;
+
+    for(auto ch : children)
+    {
+        if (std::shared_ptr<Actor> actor = std::dynamic_pointer_cast<Actor>(ch))
+        {
+            to_ref.push_back(actor);
+        }
+    }
+
+    for(auto& ref: to_ref)
+    {
+        auto layer_size = Application::instance().get_manager<RenderManager>()->
+            get_render_sprite("Debug_ui").getGlobalBounds().size;
+
+        add_child<ActorCard>
+        (
+            ref,
+            sf::Vector2f{(layer_size.x) / 5.f * counter, layer_size.y}
+        );
+        ++counter;
     }
 }
