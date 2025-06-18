@@ -4,9 +4,9 @@
 
 class MouseCollider : public CircleCollider
 {
-private:
+    private:
     int updated = false;
-public:
+    public:
     using CircleCollider::CircleCollider;
     void update(float delta) override;
     void on_collision(const std::weak_ptr<Collider> other) override;
@@ -14,7 +14,7 @@ public:
 
 class MouseTrigger : public TriggerArea
 {
-public:
+    public:
     using TriggerArea::TriggerArea;
     void on_entered(const std::weak_ptr<Collider> other) override;
     void on_exit(const std::weak_ptr<Collider> other) override;
@@ -22,12 +22,12 @@ public:
 
 class MouseCursor : public Node
 {
-private:
+    private:
     std::weak_ptr<MouseTrigger> trigger;
     std::weak_ptr<CircleCollider> collider;
     std::string view_layer;
     std::string collision_layer;
-public:
+    public:
     MouseCursor(const std::string& view, const std::string& coll);
     void update(float deltaTime) override;
     void initialize() override;

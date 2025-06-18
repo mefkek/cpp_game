@@ -5,9 +5,9 @@
 
 class Icon : public virtual Node, public sf::Sprite
 {
-private:
+    private:
     std::string layer_name;
-public:
+    public:
     Icon(const std::string& layer, const sf::Texture& texture, sf::IntRect rect = {{0, 0}, {-1, -1}});
     void initialize() override;
 

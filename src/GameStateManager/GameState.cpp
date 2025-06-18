@@ -196,7 +196,7 @@ void GameState::initialize()
         {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"},
         {"Name", ActorRaceEnum::Lich, std::make_shared<DummyBehaviour>(), atlas, sf::Vector2i{0, 8}, "Debug_ui"}
     };
-    auto p = Application::instance().get_manager<ActorManager>()->addParty(partyVec);
+    auto p = Application::instance().get_manager<ActorManager>()->add_party(partyVec);
 
     p->display({300.f, 340.f}, {5.f, 5.f}, {10.f, 10.f}, true);
     p->display_cards();

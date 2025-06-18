@@ -17,11 +17,11 @@ public:
     void update(float delta) override;
     void initialize() override;
 
-    std::shared_ptr<Party> addParty(std::vector<Actor>& actors);
+    std::shared_ptr<Party> add_party(std::vector<Actor>& actors);
 
 
 
 private:
-    std::shared_ptr<Party> playerParty_;
-    std::shared_ptr<Party> enemyParty_;
+    std::shared_ptr<Party> player_party_;
+    std::shared_ptr<Party> enemy_party_;
 };

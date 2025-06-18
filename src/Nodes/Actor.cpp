@@ -37,7 +37,7 @@ void Actor::update(float delta)
     }
 }
 
-void Actor::changeStat(const std::string& name, int delta)
+void Actor::change_stat(const std::string& name, int delta)
 {
     auto it = stats_.find(name);
     if (it == stats_.end())
@@ -49,23 +49,19 @@ void Actor::changeStat(const std::string& name, int delta)
             " tried changing non-existent stat ",
             name
         );
-        onStatChangeFailed(name, delta);
         return;
     }
 
     int newValue = it->second + delta;
     it->second = newValue;
-
-    // Invoke success hook after stat modification
-    onStatChange(name, newValue);
 }
 
-ActorRaceEnum Actor::getRace() const
+ActorRaceEnum Actor::get_race() const
 {
     return race_;
 }
 
-std::shared_ptr<sf::Sprite> Actor::getSprite() const
+std::shared_ptr<sf::Sprite> Actor::get_sprite() const
 {
     return sprite_;
 }
@@ -93,13 +89,15 @@ int Actor::get_stat(const std::string& name)
     return it->second;
 }
 
-std::string Actor::toString() const
+std::string Actor::to_string() const
 {
     // Format:
+    //   $$ACTOR_START$$\n
     //   <race as int> <numStats>\n
     //   <key1> <value1>\n
     //   <key2> <value2>\n
     //   …
+    //   $$ACTOR_END&&\n
     std::ostringstream oss;
     oss << "$$ACTOR_START$$\n";
     oss << name << ' ' << static_cast<int>(race_) << ' ' << stats_.size() << '\n';
@@ -122,7 +120,7 @@ std::string Actor::get_name()
 
 // … other includes and Actor methods …
 
-void Actor::fromString(const std::string& data)
+void Actor::from_string(const std::string& data)
 {
     std::istringstream iss(data);
 
