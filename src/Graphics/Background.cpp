@@ -1,20 +1,17 @@
 #include "Graphics/Background.hpp"
+#include "Nodes/RenderManager.hpp"
 #include <stdexcept>
 
-Background::Background()
-    : texture_()
-    , sprite_(texture_)  {}
+void Background::initialize()
+{
+    auto manager = Application::instance().get_manager<RenderManager>();
+    manager->add_drawable("Background", std::dynamic_pointer_cast<sf::Drawable>(shared_from_this()));
 
-Background::Background(const std::string& filename)
-    : Background(){
-    if (!texture_.loadFromFile(filename)) {
-        throw std::runtime_error("Failed to load background " + filename);
-    }
-    sprite_.setTexture(texture_);
-    }
-void Background::setPosition(float x, float y) {
-    sprite_.setPosition(sf::Vector2f(x, y));
+    auto layer_size = manager->get_render_texture("Background").getSize();
+    setScale({
+        layer_size.x / static_cast<float>(getTexture().getSize().x),
+        layer_size.y / static_cast<float>(getTexture().getSize().y)
+    });
 }
-void Background::draw(sf::RenderWindow& window) const {
-    window.draw(sprite_);
-}
+
+void Background::update(float delta) {}

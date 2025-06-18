@@ -12,6 +12,8 @@
 
 std::mutex Application::application_mutex;
 
+Application::Application() : background("Textures/Background.png") {}
+
 void Application::initialize()
 {
     /*
@@ -19,29 +21,6 @@ void Application::initialize()
     */
     window = sf::RenderWindow(sf::VideoMode({640 * 2, 360 * 2}), "CMake SFML Project");
     window.setVerticalSyncEnabled(true);
-
-
-
-    try {
-        background = Background("Texture/Background.png");
-
-    } catch (const std::runtime_error& error) {
-        std::cerr << "Failed to load background: " << error.what() << std::endl;
-    }
-    background.setPosition(0, 0);
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     //This block can stay for now, but this should be handled properly later on
     //(program argumetns -d as an separete debug node maybe?)
@@ -66,6 +45,7 @@ void Application::initialize()
     register_manager<WindowEventManager>();     //just an empty node, at least for now
     register_manager<CollisionManager>();
 
+    get_manager<RenderManager>()->add_layer("Background", 0, {1920u, 1240u});
     get_manager<RenderManager>()->add_layer("Debug_ui", 250, {1920u, 1240u});
     get_manager<RenderManager>()->add_layer("ddun", 1, {1920u, 1240u});
     get_manager<RenderManager>()->add_layer("ddun_e_r", 2, {1920u, 1240u});
@@ -111,6 +91,8 @@ void Application::initialize()
             }
         });
     //********************************************/
+    
+    get_manager<RenderManager>()->add_child<Background>(background);
 }
 
 Application& Application::instance()

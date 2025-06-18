@@ -2,18 +2,13 @@
 
 #include <SFML/Graphics.hpp>
 #include <string>
+#include "Nodes/Application.hpp"
 
-class Background {
-public:
-    Background();
+class Background : public Node, public sf::Sprite
+{
+    public:
+    using sf::Sprite::Sprite;
 
-    explicit Background(const std::string& filename);
-
-    void setPosition(float x, float y);
-
-    void draw(sf::RenderWindow& window) const;
-
-private:
-    sf::Texture texture_;
-    sf::Sprite  sprite_;
+    void initialize() override;
+    void update(float delta) override;
 };

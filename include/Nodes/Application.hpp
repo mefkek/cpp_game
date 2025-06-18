@@ -26,11 +26,11 @@ class Application
     std::vector<std::shared_ptr<Node>> root_level; //temporary (?)
     std::map<std::type_index, std::shared_ptr<Node>> managers;
     static std::mutex application_mutex;
-    Background background;
+    sf::Texture background;
 
 
 
-    Application() = default;
+    Application();
 
     /*
         Acts as Application class contructor without the dangers of

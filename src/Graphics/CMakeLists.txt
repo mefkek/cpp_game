@@ -4,15 +4,15 @@ set(SOURCES
         Background.cpp
 )
 
-add_library(Animation ${SOURCES})
+add_library(Graphics ${SOURCES})
 
-target_include_directories(Animation PUBLIC
+target_include_directories(Graphics PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/include/Nodes
 )
 
 
-target_link_libraries(Animation PUBLIC
+target_link_libraries(Graphics PUBLIC
         SFML::Graphics
         Nodes
 )
